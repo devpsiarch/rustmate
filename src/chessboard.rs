@@ -1,5 +1,5 @@
 mod defs;
-use defs::{SIDES,Pieces,UNICODE_PIECES};
+use defs::{SIDES,Pieces,Castle,UNICODE_PIECES};
 mod bitboard;
 use bitboard::{Bitboard};
 
@@ -16,6 +16,7 @@ use super::bitboard::{Bitboard};*/
 const SPLITTER: char = '/';
 const DASH: char = '-';
 const LIST_OF_PIECES: &str = "kqrbnpKQRBNP";
+const LIST_OF_CASTLE: &str = "KQkq-";
 const LEN_FEN_STRING: usize = 6;
 
 #[allow(non_camel_case_types)]
@@ -28,6 +29,7 @@ type Fen_parser = fn(board:&mut Chessboard,part:&str) -> bool;
 pub struct Chessboard {
     bitboards : [Bitboard;12],
     side_to_mode : SIDES,
+    castling_rights :u8,
 }
 impl Chessboard {
     //We might have to alwasys go back here too more features as the programs grows
@@ -35,13 +37,15 @@ impl Chessboard {
     pub fn new() -> Self {
         Self {
             bitboards : [0;12], 
-            side_to_mode : SIDES::white, 
+            side_to_mode : SIDES::white,
+            castling_rights : 0,
         } 
     }
     //this may have to be set to private later on
     pub fn reset(&mut self) {
         self.bitboards = [0;12];
         self.side_to_mode = SIDES::white;
+        self.castling_rights = 0;
     } 
     pub fn parse_fen(&mut self,fen:&str) -> Fen_result {
         let fen_parts: Vec<&str> = fen.split(" ").collect();
@@ -55,14 +59,18 @@ impl Chessboard {
         if n_fen_parts_ok {
             // i saw this from a repo but its amazing 
             // we create a type of functions and store them in an array then apply them one by one
-            let fen_parsers_functions: [Fen_parser; 2] = [load_board , load_side_to_move];
+            let fen_parsers_functions: [Fen_parser; 3] = [
+                 load_board ,
+                 load_side_to_move ,
+                 load_castling_rights
+            ];
             //we create a duplicate because for some reason if not the parsing wont be fine
             let mut new_board = self.clone();
             new_board.reset();
 
             // now we loop around each parsing function , such a cool thing 
             let mut i : usize = 0;
-            while i < 2 && result == Ok(()) {
+            while i < 3 && result == Ok(()) {
                 let parser = &fen_parsers_functions[i];
                 let part = &fen_parts[i];
                 let part_parsed_ok = parser(&mut new_board,part);
@@ -85,7 +93,6 @@ impl Chessboard {
     }
     pub fn print_chessboard(&self){
         //this assumes that the input Chessboard is correct such that no 2 Pieces occupy the same
-        //square
         for r in 0..8 {
             for c in 0..8 {
                 if c == 0 {
@@ -111,6 +118,14 @@ impl Chessboard {
 
         } 
         println!(" to move");
+        //decoding castling rigths
+        print!("Castling rights : ");
+        println!("{}{}{}{}",
+            if get_bit!(self.castling_rights,3) == 1 {'K'} else {DASH},
+            if get_bit!(self.castling_rights,2) == 1 {'Q'} else {DASH},
+            if get_bit!(self.castling_rights,1) == 1 {'k'} else {DASH},
+            if get_bit!(self.castling_rights,0) == 1 {'q'} else {DASH},
+        ); 
     }
 }
 // part 1 : board
@@ -170,5 +185,28 @@ fn load_side_to_move(board :&mut Chessboard,part:&str) -> bool{
     };
     return true
 } 
+//part 3 : parsing the castling rights
+fn load_castling_rights(board :&mut Chessboard,part:&str) -> bool {
+    //aperently , castling can be of length 1 if no players has castling rights 
+    let length = part.len();
+    let mut char_ok = 0;
 
+    if (1..=4).contains(&length) {
+        for c in part.chars() {
+            if LIST_OF_CASTLE.contains(c) {
+                char_ok += 1;
+                match c {
+                    'K' => board.castling_rights |= Castle::K, 
+                    'Q' => board.castling_rights |= Castle::Q, 
+                    'k' => board.castling_rights |= Castle::k, 
+                    'q' => board.castling_rights |= Castle::q, 
+                    _ => (),
+                }
+            }
+
+        }
+    }
+
+    (length >= 1) && (length == char_ok)
+}
 

@@ -16,6 +16,15 @@ impl Pieces {
     pub const q: usize = 10; // Black Queen
     pub const k: usize = 11; // Black King
 }
+//we use these to describe the castling rights as a binary number 0 0 0 0 (K,Q,k,q)
+pub struct Castle;
+#[allow(non_upper_case_globals)]
+impl Castle {
+    pub const K: u8 = 1; 
+    pub const Q: u8 = 2; 
+    pub const k: u8 = 4; 
+    pub const q: u8 = 8; 
+}
 
 pub const UNICODE_PIECES: [&str; 12] = [
     "♟︎", "♜" ,"♞" ,"♝", "♛", "♚",
