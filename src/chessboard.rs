@@ -1,5 +1,5 @@
 mod defs;
-use defs::{SIDES,Pieces,Castle,UNICODE_PIECES,SQUARE_NAME};
+use defs::{SIDES,Pieces,Castle,UNICODE_PIECES,SQUARE_NAME,MAX_GAME_MOVES,MAX_MOVE_RULE};
 mod bitboard;
 use bitboard::{Bitboard};
 
@@ -18,7 +18,8 @@ const DASH: char = '-';
 const LIST_OF_PIECES: &str = "kqrbnpKQRBNP";
 const LIST_OF_CASTLE: &str = "KQkq-";
 const LEN_FEN_STRING: usize = 6;
-const MAX_MOVE_RULE: u8 = 100;
+
+
 
 #[allow(non_camel_case_types)]
 type Fen_result = Result<(),u8>;
@@ -27,13 +28,13 @@ type Fen_parser = fn(board:&mut Chessboard,part:&str) -> bool;
 
 
 #[derive(Clone)]
-//petititing to add a field for either the boad is valid or not 
 pub struct Chessboard {
     bitboards : [Bitboard;12],
     side_to_mode : SIDES,
     castling_rights : u8,
     en_passant : u8,
     half_move_clock : u8,
+    move_count : u16,
 }
 impl Chessboard {
     //We might have to alwasys go back here too more features as the programs grows
@@ -43,8 +44,9 @@ impl Chessboard {
             bitboards : [0;12], 
             side_to_mode : SIDES::white,
             castling_rights : 0,
-            en_passant : 64,//i define 64 as none as in no en passant are availble
+            en_passant : 64,            //i define 64 as none as in no en passant are availble
             half_move_clock : 0,
+            move_count : 1,
         } 
     }
     //this may have to be set to private later on
@@ -54,6 +56,7 @@ impl Chessboard {
         self.castling_rights = 0;
         self.en_passant = 64;
         self.half_move_clock = 0;
+        self.move_count = 1;
     } 
     pub fn parse_fen(&mut self,fen:&str) -> Fen_result {
         let fen_parts: Vec<&str> = fen.split(" ").collect();
@@ -67,12 +70,13 @@ impl Chessboard {
         if n_fen_parts_ok {
             // i saw this from a repo but its amazing 
             // we create a type of functions and store them in an array then apply them one by one
-            let fen_parsers_functions: [Fen_parser; 5] = [
+            let fen_parsers_functions: [Fen_parser; LEN_FEN_STRING] = [
                  load_board ,
                  load_side_to_move ,
                  load_castling_rights ,
                  load_en_passant,
-                 load_half_move_clock
+                 load_half_move_clock,
+                 load_move_count   
             ];
             //we create a duplicate because for some reason if not the parsing wont be fine
             let mut new_board = self.clone();
@@ -80,7 +84,7 @@ impl Chessboard {
 
             // now we loop around each parsing function , such a cool thing 
             let mut i : usize = 0;
-            while i < 5 && result == Ok(()) {
+            while i < LEN_FEN_STRING && result == Ok(()) {
                 let parser = &fen_parsers_functions[i];
                 let part = &fen_parts[i];
                 let part_parsed_ok = parser(&mut new_board,part);
@@ -143,6 +147,8 @@ impl Chessboard {
         println!("en passant on : {}",SQUARE_NAME[square]);
         //printing the half move clock
         println!("half_move_clock : {}",self.half_move_clock);
+        //printing the current moves played
+        println!("moves played : {}",self.move_count);
     }
 }
 // part 1 : board
@@ -287,6 +293,23 @@ fn load_half_move_clock(board :&mut Chessboard,part:&str) -> bool {
         let Ok(x) = part.parse::<u8>() else {todo!()};
         if x < MAX_MOVE_RULE {
             board.half_move_clock = x;
+            result = true;
+        } 
+    }
+    result
+}
+
+//part 6 : baciclly the current move of the game ,
+//i assumed the max nunber to be 2048 idk how accurate that is.
+fn load_move_count(board :&mut Chessboard,part:&str) -> bool {
+    let length = part.len();
+    let mut result = false;
+    
+    //we have to check either the number is of a degit or two 
+    if length == 1 || length == 4 {
+        let Ok(x) = part.parse::<u16>() else {todo!()};
+        if x < MAX_GAME_MOVES {
+            board.move_count = x;
             result = true;
         } 
     }

@@ -42,7 +42,8 @@ pub const SQUARE_NAME: [&str; 65] = [
     "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8",
     "NONE"
 ];
-
+pub const MAX_MOVE_RULE: u8 = 100;
+pub const MAX_GAME_MOVES: u16 = 2048;
 #[derive(Clone)]
 #[allow(non_camel_case_types)]
 pub enum SIDES {
