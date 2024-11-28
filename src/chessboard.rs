@@ -1,5 +1,5 @@
 mod defs;
-use defs::{SIDES,Pieces,Castle,UNICODE_PIECES};
+use defs::{SIDES,Pieces,Castle,UNICODE_PIECES,SQUARE_NAME};
 mod bitboard;
 use bitboard::{Bitboard};
 
@@ -29,7 +29,8 @@ type Fen_parser = fn(board:&mut Chessboard,part:&str) -> bool;
 pub struct Chessboard {
     bitboards : [Bitboard;12],
     side_to_mode : SIDES,
-    castling_rights :u8,
+    castling_rights : u8,
+    en_passant : u8,
 }
 impl Chessboard {
     //We might have to alwasys go back here too more features as the programs grows
@@ -39,6 +40,7 @@ impl Chessboard {
             bitboards : [0;12], 
             side_to_mode : SIDES::white,
             castling_rights : 0,
+            en_passant : 64 ,           //i define 64 as none as in no en passant are availble
         } 
     }
     //this may have to be set to private later on
@@ -46,6 +48,7 @@ impl Chessboard {
         self.bitboards = [0;12];
         self.side_to_mode = SIDES::white;
         self.castling_rights = 0;
+        self.en_passant = 64;
     } 
     pub fn parse_fen(&mut self,fen:&str) -> Fen_result {
         let fen_parts: Vec<&str> = fen.split(" ").collect();
@@ -59,10 +62,11 @@ impl Chessboard {
         if n_fen_parts_ok {
             // i saw this from a repo but its amazing 
             // we create a type of functions and store them in an array then apply them one by one
-            let fen_parsers_functions: [Fen_parser; 3] = [
+            let fen_parsers_functions: [Fen_parser; 4] = [
                  load_board ,
                  load_side_to_move ,
-                 load_castling_rights
+                 load_castling_rights ,
+                 load_en_passant
             ];
             //we create a duplicate because for some reason if not the parsing wont be fine
             let mut new_board = self.clone();
@@ -70,7 +74,7 @@ impl Chessboard {
 
             // now we loop around each parsing function , such a cool thing 
             let mut i : usize = 0;
-            while i < 3 && result == Ok(()) {
+            while i < 4 && result == Ok(()) {
                 let parser = &fen_parsers_functions[i];
                 let part = &fen_parts[i];
                 let part_parsed_ok = parser(&mut new_board,part);
@@ -93,6 +97,7 @@ impl Chessboard {
     }
     pub fn print_chessboard(&self){
         //this assumes that the input Chessboard is correct such that no 2 Pieces occupy the same
+        // here we print the board pieces
         for r in 0..8 {
             for c in 0..8 {
                 if c == 0 {
@@ -112,6 +117,7 @@ impl Chessboard {
             print!("\n");
         }
         println!("   A B C D E F G H");
+        // sides here duh 
         match self.side_to_mode {
             SIDES::white  => print!("White"),
             SIDES::black => print!("black"),
@@ -125,7 +131,11 @@ impl Chessboard {
             if get_bit!(self.castling_rights,2) == 1 {'Q'} else {DASH},
             if get_bit!(self.castling_rights,1) == 1 {'k'} else {DASH},
             if get_bit!(self.castling_rights,0) == 1 {'q'} else {DASH},
-        ); 
+        );
+        //here we print the en passant thingy
+        let square : usize = self.en_passant as usize;
+        println!("en passant on : {}",SQUARE_NAME[square]);
+
     }
 }
 // part 1 : board
@@ -210,3 +220,51 @@ fn load_castling_rights(board :&mut Chessboard,part:&str) -> bool {
     (length >= 1) && (length == char_ok)
 }
 
+//this is a helper function that returns the correct square number for each algebriac square 
+fn algb_to_square(square:&str) -> Option<u8> {
+    match square {
+        "a1" => Some(0), "b1" => Some(1), "c1" => Some(2), "d1" => Some(3),
+        "e1" => Some(4), "f1" => Some(5), "g1" => Some(6), "h1" => Some(7),
+        "a2" => Some(8), "b2" => Some(9), "c2" => Some(10), "d2" => Some(11),
+        "e2" => Some(12), "f2" => Some(13), "g2" => Some(14), "h2" => Some(15),
+        "a3" => Some(16), "b3" => Some(17), "c3" => Some(18), "d3" => Some(19),
+        "e3" => Some(20), "f3" => Some(21), "g3" => Some(22), "h3" => Some(23),
+        "a4" => Some(24), "b4" => Some(25), "c4" => Some(26), "d4" => Some(27),
+        "e4" => Some(28), "f4" => Some(29), "g4" => Some(30), "h4" => Some(31),
+        "a5" => Some(32), "b5" => Some(33), "c5" => Some(34), "d5" => Some(35),
+        "e5" => Some(36), "f5" => Some(37), "g5" => Some(38), "h5" => Some(39),
+        "a6" => Some(40), "b6" => Some(41), "c6" => Some(42), "d6" => Some(43),
+        "e6" => Some(44), "f6" => Some(45), "g6" => Some(46), "h6" => Some(47),
+        "a7" => Some(48), "b7" => Some(49), "c7" => Some(50), "d7" => Some(51),
+        "e7" => Some(52), "f7" => Some(53), "g7" => Some(54), "h7" => Some(55),
+        "a8" => Some(56), "b8" => Some(57), "c8" => Some(58), "d8" => Some(59),
+        "e8" => Some(60), "f8" => Some(61), "g8" => Some(62), "h8" => Some(63),
+        _ => None,  // Return None for invalid input
+    }
+}
+
+// part 4 ; parsing the en passant square
+fn load_en_passant(board :&mut Chessboard,part:&str) -> bool {
+    let length = part.len();
+    let mut char_ok = 0;
+
+    // checking if the part is just a dash which is fine 
+    if length == 1 {
+        let Some(x) = part.chars().next() else {todo!()};
+        if x == DASH {
+            char_ok += 1
+        }
+    }
+    //checking if there is acually a square that allows en passant 
+    if length == 2 {
+        let square = algb_to_square(part);
+        match square {
+            Some(x) => {
+                board.en_passant = x;
+                char_ok += 2;
+            }
+            None => (),
+        }
+    }
+    (char_ok == 1 || char_ok == 2) && (length == char_ok)
+}
