@@ -18,6 +18,7 @@ const DASH: char = '-';
 const LIST_OF_PIECES: &str = "kqrbnpKQRBNP";
 const LIST_OF_CASTLE: &str = "KQkq-";
 const LEN_FEN_STRING: usize = 6;
+const MAX_MOVE_RULE: u8 = 100;
 
 #[allow(non_camel_case_types)]
 type Fen_result = Result<(),u8>;
@@ -26,11 +27,13 @@ type Fen_parser = fn(board:&mut Chessboard,part:&str) -> bool;
 
 
 #[derive(Clone)]
+//petititing to add a field for either the boad is valid or not 
 pub struct Chessboard {
     bitboards : [Bitboard;12],
     side_to_mode : SIDES,
     castling_rights : u8,
     en_passant : u8,
+    half_move_clock : u8,
 }
 impl Chessboard {
     //We might have to alwasys go back here too more features as the programs grows
@@ -40,7 +43,8 @@ impl Chessboard {
             bitboards : [0;12], 
             side_to_mode : SIDES::white,
             castling_rights : 0,
-            en_passant : 64 ,           //i define 64 as none as in no en passant are availble
+            en_passant : 64,//i define 64 as none as in no en passant are availble
+            half_move_clock : 0,
         } 
     }
     //this may have to be set to private later on
@@ -49,6 +53,7 @@ impl Chessboard {
         self.side_to_mode = SIDES::white;
         self.castling_rights = 0;
         self.en_passant = 64;
+        self.half_move_clock = 0;
     } 
     pub fn parse_fen(&mut self,fen:&str) -> Fen_result {
         let fen_parts: Vec<&str> = fen.split(" ").collect();
@@ -62,11 +67,12 @@ impl Chessboard {
         if n_fen_parts_ok {
             // i saw this from a repo but its amazing 
             // we create a type of functions and store them in an array then apply them one by one
-            let fen_parsers_functions: [Fen_parser; 4] = [
+            let fen_parsers_functions: [Fen_parser; 5] = [
                  load_board ,
                  load_side_to_move ,
                  load_castling_rights ,
-                 load_en_passant
+                 load_en_passant,
+                 load_half_move_clock
             ];
             //we create a duplicate because for some reason if not the parsing wont be fine
             let mut new_board = self.clone();
@@ -74,7 +80,7 @@ impl Chessboard {
 
             // now we loop around each parsing function , such a cool thing 
             let mut i : usize = 0;
-            while i < 4 && result == Ok(()) {
+            while i < 5 && result == Ok(()) {
                 let parser = &fen_parsers_functions[i];
                 let part = &fen_parts[i];
                 let part_parsed_ok = parser(&mut new_board,part);
@@ -135,7 +141,8 @@ impl Chessboard {
         //here we print the en passant thingy
         let square : usize = self.en_passant as usize;
         println!("en passant on : {}",SQUARE_NAME[square]);
-
+        //printing the half move clock
+        println!("half_move_clock : {}",self.half_move_clock);
     }
 }
 // part 1 : board
@@ -250,7 +257,8 @@ fn load_en_passant(board :&mut Chessboard,part:&str) -> bool {
 
     // checking if the part is just a dash which is fine 
     if length == 1 {
-        let Some(x) = part.chars().next() else {todo!()};
+        let Some(x) = part.chars().next() else {todo!()};   // this is the only way that it would
+        // work so ...
         if x == DASH {
             char_ok += 1
         }
@@ -267,4 +275,20 @@ fn load_en_passant(board :&mut Chessboard,part:&str) -> bool {
         }
     }
     (char_ok == 1 || char_ok == 2) && (length == char_ok)
+}
+
+//part 5 : half move clock , idk what does this do tbh but guess its inportant 
+fn load_half_move_clock(board :&mut Chessboard,part:&str) -> bool {
+    let length = part.len();
+    let mut result = false;
+    
+    //we have to check either the number is of a degit or two 
+    if length == 1 || length == 2 {
+        let Ok(x) = part.parse::<u8>() else {todo!()};
+        if x < MAX_MOVE_RULE {
+            board.half_move_clock = x;
+            result = true;
+        } 
+    }
+    result
 }
