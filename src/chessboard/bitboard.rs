@@ -31,4 +31,5 @@ pub fn print_bitboard(board : &Bitboard){
         }
         print!("\n");
     }
+    print!("\n");
 }

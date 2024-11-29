@@ -1,8 +1,10 @@
-mod defs;
+pub mod defs;
 use defs::{SIDES};
-mod bitboard;
+pub mod bitboard;
 use bitboard::{Bitboard};
 mod fen;
+pub mod attacks;
+
 
 #[derive(Clone)]
 pub struct Chessboard {
