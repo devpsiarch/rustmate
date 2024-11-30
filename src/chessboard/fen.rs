@@ -1,5 +1,4 @@
 use super::defs::{SIDES,Pieces,Castle,UNICODE_PIECES,SQUARE_NAME,MAX_GAME_MOVES,MAX_MOVE_RULE};
-use super::bitboard::{Bitboard};
 
 //idk why the compiler told me to explicitly use the macros here but hey it works
 use crate::get_bit;

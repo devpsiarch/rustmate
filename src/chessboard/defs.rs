@@ -16,6 +16,15 @@ impl Pieces {
     pub const q: usize = 10; // Black Queen
     pub const k: usize = 11; // Black King
 }
+//This does the same job as the SIDES , i just use it to see the color thats all 
+//yea i know am stupid shut up
+pub struct Color;
+#[allow(non_upper_case_globals)]
+impl Color {
+    pub const white: usize = 0; 
+    pub const black: usize = 1;
+}
+
 //we use these to describe the castling rights as a binary number 0 0 0 0 (K,Q,k,q)
 pub struct Castle;
 #[allow(non_upper_case_globals)]

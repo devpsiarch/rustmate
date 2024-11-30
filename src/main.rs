@@ -16,11 +16,15 @@ fn main() {
     //chess.parse_fen("r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1");
     //chess.print_chessboard();
     //bitboard::print_bitboard(&attacks::NOT_H_FILE);
-    let mut test = attacks::get_pawn_attack_mask(defs::SQUARE::h4,defs::SIDES::black);
-    bitboard::print_bitboard(&test);
-    test = attacks::get_king_attack_mask(defs::SQUARE::h4);
-    bitboard::print_bitboard(&test);
-    test = attacks::get_knight_attack_mask(defs::SQUARE::h4);
-    bitboard::print_bitboard(&test);
-
+    //let mut test = attacks::get_pawn_attack_mask(defs::SQUARE::h4,defs::SIDES::black);
+    //bitboard::print_bitboard(&test);
+    //test = attacks::get_king_attack_mask(defs::SQUARE::h4);
+    //bitboard::print_bitboard(&test);
+    //test = attacks::get_knight_attack_mask(defs::SQUARE::h4);
+    //bitboard::print_bitboard(&test);
+    let mut test = attacks::AttackMasks::new();
+    test.load_attacks_maps();
+    for i in 0..64 {
+        bitboard::print_bitboard(&test.knight_attack_masks[i]);
+    }
 }

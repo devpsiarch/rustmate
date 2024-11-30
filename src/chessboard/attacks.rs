@@ -14,9 +14,50 @@ const NOT_GH_FILE: Bitboard = 4557430888798830399;
 const NOT_AB_FILE: Bitboard = 18229723555195321596; 
 // this will hold all of our attack masks , this may be changed in the future 
 // i willl add more pices attacks here each time we make one
-pub struct Attack_masks {
-    pawn_attack_masks: [[Bitboard;2];64] ,
-    king_attack_masks: [Bitboard;64] ,
+// idk if thie will also hold the bishop , queen and rook tables ..
+pub struct AttackMasks {
+    pub pawn_attack_masks: [[Bitboard;64];2] ,
+    pub king_attack_masks: [Bitboard;64] ,
+    pub knight_attack_masks: [Bitboard;64] ,
+}
+// this will have all the methodes that will allow for loading the attack masks
+//I shouuld probibly have a methode that calls all the other methodes to load all the attack maps
+impl AttackMasks {
+    //These shall stays private ok future me ?
+    fn load_pawn_masks(&mut self){
+        //loop thought all the squares and populate the attack maps for black and white 
+        //cur they are pawns 
+        for i in 0..64 {
+            // 0 => white || 1 => black  
+            self.pawn_attack_masks[0][i] = get_pawn_attack_mask(i.try_into().unwrap(),SIDES::white);
+            self.pawn_attack_masks[1][i] = get_pawn_attack_mask(i.try_into().unwrap(),SIDES::black);
+        }
+    }
+    fn load_king_masks(&mut self){
+        //the same as other function just for king ans its color neutral
+        for i in 0..64 {
+            self.king_attack_masks[i] = get_king_attack_mask(i.try_into().unwrap());
+        }
+    }
+    fn load_knight_masks(&mut self){
+        //the same as other function just for king ans its color neutral
+        for i in 0..64 {
+            self.knight_attack_masks[i] = get_knight_attack_mask(i.try_into().unwrap());
+        }
+    }
+    //this will call all of the above methodes to load the attack maps at once 
+    pub fn new() -> Self {
+        Self {
+            pawn_attack_masks: [[0; 64]; 2], 
+            king_attack_masks: [0; 64],
+            knight_attack_masks: [0; 64],
+        }
+    }
+    pub fn load_attacks_maps(&mut self){
+        self.load_pawn_masks();
+        self.load_king_masks();
+        self.load_knight_masks();
+    }
 }
 // this returns a bitboard of all the possible attacks a pawn can have
 pub fn get_pawn_attack_mask(square: u8,color: SIDES) -> Bitboard {
