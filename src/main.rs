@@ -22,9 +22,11 @@ fn main() {
     //bitboard::print_bitboard(&test);
     //test = attacks::get_knight_attack_mask(defs::SQUARE::h4);
     //bitboard::print_bitboard(&test);
-    let mut test = attacks::AttackMasks::new();
-    test.load_attacks_maps();
-    for i in 0..64 {
-        bitboard::print_bitboard(&test.knight_attack_masks[i]);
-    }
+    //let mut test = attacks::AttackMasks::new();
+    //test.load_attacks_maps();
+    //for i in 0..64 {
+    //    bitboard::print_bitboard(&test.knight_attack_masks[i]);
+    //}
+    let mut test = attacks::get_rook_attack_premask(defs::SQUARE::e4); 
+    bitboard::print_bitboard(&test);
 }
