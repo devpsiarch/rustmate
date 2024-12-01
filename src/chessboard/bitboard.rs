@@ -23,6 +23,15 @@ macro_rules! kill_board {
         (($board) = 0) 
     };
 }
+#[macro_export]
+macro_rules! pop_bit {
+    ($board:expr,$bit:expr) => {
+        if get_bit!($board,$bit) != 0 {
+            $board ^= (1 << $bit) 
+        }
+    };
+}
+
 #[allow(dead_code)]
 pub fn print_bitboard(board : &Bitboard){
     for i in 0..8 {
@@ -32,4 +41,24 @@ pub fn print_bitboard(board : &Bitboard){
         print!("\n");
     }
     print!("\n");
+}
+
+pub fn bit_count(board:Bitboard) -> u8{
+    let mut count:u8 = 0; 
+    let mut temp = board;
+    while temp != 0 {
+        temp &= temp -1;
+        count += 1;
+    }  
+    count
+}
+pub fn get_lsb(board:Bitboard) -> u8 {
+    let mut temp = board;
+    if temp == 0 {
+        panic!("supplied zero bitboard to get tsb !!!");
+    }
+    else{
+        temp = (temp & temp.wrapping_neg()) - 1;   
+    }
+    bit_count(temp)
 }

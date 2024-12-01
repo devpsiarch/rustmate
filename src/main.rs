@@ -28,5 +28,10 @@ fn main() {
     //    bitboard::print_bitboard(&test.knight_attack_masks[i]);
     //}
     let mut test = attacks::get_rook_attack_premask(defs::SQUARE::e4); 
+    pop_bit!(test,defs::SQUARE::e5);
     bitboard::print_bitboard(&test);
+    let c = bitboard::bit_count(test);
+    let ksb = bitboard::get_lsb(test);
+    println!("{}",c);
+    println!("{}",ksb);
 }
