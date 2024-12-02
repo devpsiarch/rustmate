@@ -1,9 +1,10 @@
 // here ze will define the attack masks for each piece so we can directly look them up when we need
 // too in a rather fat way .
-use super::bitboard::{Bitboard};
+use super::bitboard::{Bitboard,get_lsb};
 use super::defs::{SIDES};
 use crate::set_bit;
-
+use crate::pop_bit;
+use crate::get_bit;
 //these are the bitboards that represent the not X board , for example the not A file means its a
 //bitboard where every bit is set execept the A file is not 
 //theu are used for precalculating the attack masks 
@@ -12,6 +13,33 @@ const NOT_A_FILE : Bitboard = 18374403900871474942;
 const NOT_H_FILE : Bitboard = 9187201950435737471;
 const NOT_GH_FILE: Bitboard = 4557430888798830399;
 const NOT_AB_FILE: Bitboard = 18229723555195321596; 
+/*
+* these will be used later to calculate the indeces to index the attack tables 
+* */
+// Bishop relevant occupancy bits for each position
+const BISHOP_ROB: [u8; 64] = [
+    6, 5, 5, 5, 5, 5, 5, 6,
+    5, 5, 5, 5, 5, 5, 5, 5,
+    5, 5, 7, 7, 7, 7, 5, 5,
+    5, 5, 7, 9, 9, 7, 5, 5,
+    5, 5, 7, 9, 9, 7, 5, 5,
+    5, 5, 7, 7, 7, 7, 5, 5,
+    5, 5, 5, 5, 5, 5, 5, 5,
+    6, 5, 5, 5, 5, 5, 5, 6,
+];
+
+// Rook relevant occupancy bits for each position
+const ROOK_ROB: [u8; 64] = [
+    12, 11, 11, 11, 11, 11, 11, 12,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    12, 11, 11, 11, 11, 11, 11, 12,
+];
+
 // this will hold all of our attack masks , this may be changed in the future 
 // i willl add more pices attacks here each time we make one
 // idk if thie will also hold the bishop , queen and rook tables ..
@@ -214,4 +242,19 @@ pub fn get_rook_attack_premask(square: u8) -> Bitboard {
         set_bit!(mask,r*8+file);
     }
     mask
+}
+//this function below will help us get all the possible attack paterns of the slider pieces
+//how exacly ? idk but we need it and also another version of mask attack for sliding pieces
+//FUTURE ME :::: please check this is working fine 
+pub fn set_occupency(index:u32,bit_mask:u32,mut attack_map:Bitboard) -> Bitboard {
+    let mut ocp :Bitboard = 0;
+    let mut sqr:u8 = 0;
+    for i in 0..bit_mask {
+        sqr = get_lsb(attack_map);
+        pop_bit!(attack_map,sqr);
+        if index & (1 << i) != 0 {
+            ocp |= 1 << sqr;
+        }
+    }
+    return ocp;
 }
