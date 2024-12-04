@@ -5,6 +5,9 @@ use super::defs::{SIDES};
 use crate::set_bit;
 use crate::pop_bit;
 use crate::get_bit;
+use crate::magic::bishop_magics;
+use crate::magic::rook_magics;
+use crate::defs::LEAPER;
 //these are the bitboards that represent the not X board , for example the not A file means its a
 //bitboard where every bit is set execept the A file is not 
 //theu are used for precalculating the attack masks 
@@ -47,7 +50,7 @@ pub struct AttackMasks {
     pub pawn_attack_masks: [[Bitboard;64];2] ,
     pub king_attack_masks: [Bitboard;64] ,
     pub knight_attack_masks: [Bitboard;64] ,
-    pub bishop_attack_table: [[Bitboard;512];64],
+    pub bishop_attack_table: [[Bitboard;512];64],    //piece [squares][occupencies]
     pub rook_attack_table: [[Bitboard;4096];64],
 }
 
@@ -88,6 +91,37 @@ impl AttackMasks {
             self.knight_attack_masks[i] = get_knight_attack_mask(i.try_into().unwrap());
         }
     }
+    // am gonna hanlde both rook and bishop in the same func , the consider true as bishop and
+    // false as rook
+    fn load_leaper_table(&mut self,piece:LEAPER){
+        let mut attack_mask: Bitboard = 0;
+        for i in 0..64 {
+            match piece {
+                //bishop case
+                LEAPER::bishop => attack_mask = get_bishop_attack_premask(i as u8),
+                LEAPER::rook => attack_mask = get_rook_attack_premask(i as u8),
+            }
+            let bit_count = bit_count(attack_mask);
+            let ocp_indecies = 1 << bit_count;
+            for j in 0..ocp_indecies {
+                let occ = set_occupency(j,attack_mask);
+                // here wer perfome the "formula" that allows us to index each attack mask
+                // using the magic numbers 
+                match piece {
+                    LEAPER::bishop => {
+                        let magic_index = (occ * bishop_magics[i as usize]) >> (64 - BISHOP_ROB[i as usize]);
+                        //storing the attack table for every possible occupency
+                        self.bishop_attack_table[i as usize][magic_index as usize];
+                    }
+                    LEAPER::rook => {
+                        let magic_index = (occ * rook_magics[i as usize]) >> (64 - ROOK_ROB[i as usize]);
+                        //storing the attack table for every possible occupency
+                        self.rook_attack_table[i as usize][magic_index as usize];
+                    }
+                }
+            }  
+        } 
+    }
     //this will call all of the above methodes to load the attack maps at once 
     pub fn new() -> Self {
         Self {
@@ -102,6 +136,8 @@ impl AttackMasks {
         self.load_pawn_masks();
         self.load_king_masks();
         self.load_knight_masks();
+        self.load_leaper_table(LEAPER::bishop);
+        self.load_leaper_table(LEAPER::rook);
     }
 }
 // this returns a bitboard of all the possible attacks a pawn can have
@@ -207,44 +243,71 @@ fn get_knight_attack_mask(square: u8) -> Bitboard {
 // this func will get up the attack mask the rook , but not quite ...
 // it is no complete and this would be used to get the accual maps
 pub fn get_bishop_attack_premask(square: u8) -> Bitboard {
-    let mut mask:Bitboard = 0;
-    //get the location of the current square  
-    let rank = square/8;
-    let file = square%8;
-    //getting the attack rays 
-    //we skip the last one before hiting the edge of the board ... idk why ask chess wiki
-    for (r,f) in (rank+1..=6).zip(file+1..=6) {
-        set_bit!(mask,r*8+f);
+    let mut mask: Bitboard = 0;
+    // get the location of the current square
+    let rank = square / 8;
+    let file = square % 8;
+
+    // ensure the rank and file are within bounds
+    let min_rank = 1;
+    let max_rank = 6;
+    let min_file = 1;
+    let max_file = 6;
+
+    // getting the attack rays
+    // Up-right diagonal
+    for (r, f) in (rank + 1..=max_rank).zip(file + 1..=max_file) {
+        set_bit!(mask, r * 8 + f);
     }
-    for (r,f) in (rank+1..=6).zip((1..=file-1).rev()) {
-        set_bit!(mask,r*8+f);
+    // Down-right diagonal
+    for (r, f) in (rank + 1..=max_rank).zip((min_file..file).rev()) {
+        set_bit!(mask, r * 8 + f);
     }
-    for (r,f) in ((1..=rank-1).rev()).zip(file+1..=6) {
-        set_bit!(mask,r*8+f);
+    // Up-left diagonal
+    for (r, f) in ((min_rank..rank).rev()).zip(file + 1..=max_file) {
+        set_bit!(mask, r * 8 + f);
     }
-    for (r,f) in ((1..=rank-1).rev()).zip((1..=file-1).rev()) {
-        set_bit!(mask,r*8+f);
+    // Down-left diagonal
+    for (r, f) in ((min_rank..rank).rev()).zip((min_file..file).rev()) {
+        set_bit!(mask, r * 8 + f);
     }
+
     mask
 }
 //same thing here for the rook
 pub fn get_rook_attack_premask(square: u8) -> Bitboard {
-    let mut mask:Bitboard = 0;
-    let rank = square/8;
-    let file = square%8;
-    //setting the rays
-    for f in file+1..=6 {
-        set_bit!(mask,rank*8+f);
+    let mut mask: Bitboard = 0;
+    let rank = square / 8;
+    let file = square % 8;
+
+    // Ensure the rank and file are within bounds
+    let min_rank = 1;
+    let max_rank = 6;
+    let min_file = 1;
+    let max_file = 6;
+
+    // Getting the attack rays (horizontal and vertical)
+
+    // Rightward horizontal ray
+    for f in (file + 1..=max_file) {
+        set_bit!(mask, rank * 8 + f);
     }
-    for r in rank+1..=6 {
-        set_bit!(mask,r*8+file);
+
+    // Downward vertical ray
+    for r in (rank + 1..=max_rank) {
+        set_bit!(mask, r * 8 + file);
     }
-    for f in (1..=file-1).rev() {
-        set_bit!(mask,rank*8+f);
+
+    // Leftward horizontal ray
+    for f in (min_file..file).rev() {
+        set_bit!(mask, rank * 8 + f);
     }
-    for r in (1..=rank-1).rev() {
-        set_bit!(mask,r*8+file);
+
+    // Upward vertical ray
+    for r in (min_rank..rank).rev() {
+        set_bit!(mask, r * 8 + file);
     }
+
     mask
 }
 /*
@@ -254,68 +317,95 @@ pub fn get_rook_attack_premask(square: u8) -> Bitboard {
 * indecies rather then use the below function to get them one by one when looking for moves , but
 * nevertheless we need them so here they are*/
 pub fn get_bishop_attack_otfmask(block:Bitboard,square: u8) -> Bitboard {
-    let mut mask:Bitboard = 0;
-    //get the location of the current square  
-    let rank = square/8;
-    let file = square%8;
-    //getting the attack rays 
-    //we skip the last one before hiting the edge of the board ... idk why ask chess wiki
-    for (r,f) in (rank+1..=7).zip(file+1..=7) {
-        set_bit!(mask,r*8+f);
+    let mut mask: Bitboard = 0;
+    // get the location of the current square
+    let rank = square / 8;
+    let file = square % 8;
+
+    // ensure the rank and file are within bounds
+    let min_rank = 0;
+    let max_rank = 7;
+    let min_file = 0;
+    let max_file = 7;
+
+    // getting the attack rays
+    // Up-right diagonal
+    for (r, f) in (rank + 1..=max_rank).zip(file + 1..=max_file) {
+        set_bit!(mask, r * 8 + f);
         if (1 << r*8+f) & block != 0 {
             break;
         }
     }
-    for (r,f) in (rank+1..=7).zip((0..=file-1).rev()) {
-        set_bit!(mask,r*8+f);
+    // Down-right diagonal
+    for (r, f) in (rank + 1..=max_rank).zip((min_file..file).rev()) {
+        set_bit!(mask, r * 8 + f);
         if (1 << r*8+f) & block != 0 {
             break;
         }
     }
-    for (r,f) in ((0..=rank-1).rev()).zip(file+1..=7) {
-        set_bit!(mask,r*8+f);
+    // Up-left diagonal
+    for (r, f) in ((min_rank..rank).rev()).zip(file + 1..=max_file) {
+        set_bit!(mask, r * 8 + f);
         if (1 << r*8+f) & block != 0 {
             break;
         }
     }
-    for (r,f) in ((0..=rank-1).rev()).zip((0..=file-1).rev()) {
-        set_bit!(mask,r*8+f);
+    // Down-left diagonal
+    for (r, f) in ((min_rank..rank).rev()).zip((min_file..file).rev()) {
+        set_bit!(mask, r * 8 + f);
         if (1 << r*8+f) & block != 0 {
             break;
         }
     }
+
     mask
 }
 //same thing here for the rook
 pub fn get_rook_attack_otfmask(block:Bitboard,square: u8) -> Bitboard {
-    let mut mask:Bitboard = 0;
-    let rank = square/8;
-    let file = square%8;
-    //setting the rays
-    for f in file+1..=7 {
-        set_bit!(mask,rank*8+f);
+    let mut mask: Bitboard = 0;
+    let rank = square / 8;
+    let file = square % 8;
+
+    // Ensure the rank and file are within bounds
+    let min_rank = 0;
+    let max_rank = 7;
+    let min_file = 0;
+    let max_file = 7;
+
+    // Getting the attack rays (horizontal and vertical)
+
+    // Rightward horizontal ray
+    for f in (file + 1..=max_file) {
         if (1 << rank*8+f) & block != 0 {
             break;
         }
+        set_bit!(mask, rank * 8 + f);
     }
-    for r in rank+1..=7 {
-        set_bit!(mask,r*8+file);
+
+    // Downward vertical ray
+    for r in (rank + 1..=max_rank) {
+        set_bit!(mask, r * 8 + file);
         if (1 << r*8+file) & block != 0 {
             break;
         }
     }
-    for f in (0..=file-1).rev() {
-        set_bit!(mask,rank*8+f);
+
+    // Leftward horizontal ray
+    for f in (min_file..file).rev() {
+        set_bit!(mask, rank * 8 + f);
         if (1 << rank*8+f) & block != 0 {
             break;
         }
     }
-    for r in (0..=rank-1).rev() {
-        set_bit!(mask,r*8+file);
+
+    // Upward vertical ray
+    for r in (min_rank..rank).rev() {
+        set_bit!(mask, r * 8 + file);
         if (1 << r*8+file) & block != 0 {
             break;
         }
     }
+
     mask
 }
 //this function below will help us get all the possible attack paterns of the slider pieces

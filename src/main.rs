@@ -24,8 +24,8 @@ fn main() {
     //bitboard::print_bitboard(&test);
     //test = attacks::get_knight_attack_mask(defs::SQUARE::h4);
     //bitboard::print_bitboard(&test);
-    //let mut test = attacks::AttackMasks::new();
-    //test.load_attacks_maps();
+    let mut test = attacks::AttackMasks::new();
+    test.load_attacks_maps();
     //for i in 0..64 {
     //    bitboard::print_bitboard(&test.knight_attack_masks[i]);
     //}
@@ -33,8 +33,8 @@ fn main() {
     set_bit!(occ,defs::SQUARE::d5);
     set_bit!(occ,defs::SQUARE::e6);
     set_bit!(occ,defs::SQUARE::g5);
-    set_bit!(occ,defs::SQUARE::e2);
-    let mut test = attacks::get_rook_attack_otfmask(occ,defs::SQUARE::e5); 
+    set_bit!(occ,defs::SQUARE::a2);
+    let mut test = attacks::get_rook_attack_otfmask(occ,defs::SQUARE::a8);
     bitboard::print_bitboard(&test);
     //pop_bit!(test,defs::SQUARE::e5);
     //bitboard::print_bitboard(&test);
