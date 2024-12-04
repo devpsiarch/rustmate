@@ -7,6 +7,12 @@ use crate::chessboard::attacks;
 use crate::chessboard::defs;
 use crate::chessboard::magic;
 use crate::bitboard::Bitboard;
+use crate::defs::SLIDER;
+
+/*
+* NOTES ::: future me 
+* fix the loading / looking up the slider pieces attack tables for the rook cuz they be ass*/
+
 
 //i will be running tests here untile everything is set and done
 fn main() {
@@ -30,14 +36,17 @@ fn main() {
     //    bitboard::print_bitboard(&test.knight_attack_masks[i]);
     //}
     let mut occ: Bitboard = 0;
-    set_bit!(occ,defs::SQUARE::d5);
-    set_bit!(occ,defs::SQUARE::e6);
-    set_bit!(occ,defs::SQUARE::g5);
-    set_bit!(occ,defs::SQUARE::a2);
-    let mut test = attacks::get_rook_attack_otfmask(occ,defs::SQUARE::a8);
-    bitboard::print_bitboard(&test);
-    //pop_bit!(test,defs::SQUARE::e5);
-    //bitboard::print_bitboard(&test);
+    set_bit!(occ,defs::SQUARE::d4);
+    set_bit!(occ,defs::SQUARE::h4);
+    //set_bit!(occ,defs::SQUARE::g6);
+    //set_bit!(occ,defs::SQUARE::f4);
+    let mut map = test.lookup_slider(SLIDER::rook,occ,defs::SQUARE::e4);
+    bitboard::print_bitboard(&occ);
+    bitboard::print_bitboard(&map);
+    let rookotf = attacks::get_rook_attack_otfmask(occ,defs::SQUARE::e4);
+    let rookpre = attacks::get_rook_attack_premask(defs::SQUARE::g5);
+    bitboard::print_bitboard(&rookotf);   
+    bitboard::print_bitboard(&rookpre);
     //let c = bitboard::bit_count(test);
     //let ksb = bitboard::get_lsb(test);
     //println!("{}",c);

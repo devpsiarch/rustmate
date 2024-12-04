@@ -7,7 +7,7 @@ use crate::pop_bit;
 use crate::get_bit;
 use crate::magic::bishop_magics;
 use crate::magic::rook_magics;
-use crate::defs::LEAPER;
+use crate::defs::SLIDER;
 //these are the bitboards that represent the not X board , for example the not A file means its a
 //bitboard where every bit is set execept the A file is not 
 //theu are used for precalculating the attack masks 
@@ -20,7 +20,7 @@ const NOT_AB_FILE: Bitboard = 18229723555195321596;
 * these will be used later to calculate the indeces to index the attack tables 
 * */
 // Bishop relevant occupancy bits for each position
-const BISHOP_ROB: [u8; 64] = [
+const BISHOP_ROB: [u64; 64] = [
     6, 5, 5, 5, 5, 5, 5, 6,
     5, 5, 5, 5, 5, 5, 5, 5,
     5, 5, 7, 7, 7, 7, 5, 5,
@@ -32,7 +32,7 @@ const BISHOP_ROB: [u8; 64] = [
 ];
 
 // Rook relevant occupancy bits for each position
-const ROOK_ROB: [u8; 64] = [
+const ROOK_ROB: [u64; 64] = [
     12, 11, 11, 11, 11, 11, 11, 12,
     11, 10, 10, 10, 10, 10, 10, 11,
     11, 10, 10, 10, 10, 10, 10, 11,
@@ -50,6 +50,9 @@ pub struct AttackMasks {
     pub pawn_attack_masks: [[Bitboard;64];2] ,
     pub king_attack_masks: [Bitboard;64] ,
     pub knight_attack_masks: [Bitboard;64] ,
+     
+    pub bishop_attack_mask: [Bitboard;64],           //We also store the premasks cuz we need them
+    pub rook_attack_mask: [Bitboard;64],                // in indexing the tables and lookup
     pub bishop_attack_table: [[Bitboard;512];64],    //piece [squares][occupencies]
     pub rook_attack_table: [[Bitboard;4096];64],
 }
@@ -63,7 +66,7 @@ pub struct AttackMasks {
 * all the possible attack maps for each case of blocking , again this is gonna be worth it in the
 * long run beacause the look up is far faster then to just loop around when making moves .
 *
-* for leaper pieces after getting the the possible attack maps , its left that we define a spicial
+* for slider pieces after getting the the possible attack maps , its left that we define a spicial
 * indexing methodes to find the corresponding map , kinda like creating out own hash map
 * */
 // this will have all the methodes that will allow for loading the attack masks
@@ -93,13 +96,23 @@ impl AttackMasks {
     }
     // am gonna hanlde both rook and bishop in the same func , the consider true as bishop and
     // false as rook
-    fn load_leaper_table(&mut self,piece:LEAPER){
+    // we still need a methode too look them up after loading them
+    fn load_slider_table(&mut self,piece:SLIDER){
         let mut attack_mask: Bitboard = 0;
         for i in 0..64 {
+            // Here while doing the loop , we take advantage and at the same time we populate the
+            // masks that there main use is just to indxe the tables that we accually need
+            // i populated them in separate cases for speed , idk if that makes a diffrence 
+            // and i dont want them to be changed when they dont need to 
             match piece {
-                //bishop case
-                LEAPER::bishop => attack_mask = get_bishop_attack_premask(i as u8),
-                LEAPER::rook => attack_mask = get_rook_attack_premask(i as u8),
+                SLIDER::bishop => { 
+                    self.bishop_attack_mask[i as usize] = get_bishop_attack_premask(i as u8); 
+                    attack_mask = self.bishop_attack_mask[i as usize];
+                }                
+                SLIDER::rook => {
+                    self.rook_attack_mask[i as usize] = get_rook_attack_premask(i as u8);
+                    attack_mask = self.rook_attack_mask[i as usize];
+                }
             }
             let bit_count = bit_count(attack_mask);
             let ocp_indecies = 1 << bit_count;
@@ -108,19 +121,40 @@ impl AttackMasks {
                 // here wer perfome the "formula" that allows us to index each attack mask
                 // using the magic numbers 
                 match piece {
-                    LEAPER::bishop => {
-                        let magic_index = (occ * bishop_magics[i as usize]) >> (64 - BISHOP_ROB[i as usize]);
+                    SLIDER::bishop => {
+                        let magic_index = occ.wrapping_mul(bishop_magics[i as usize]) >> (64 - BISHOP_ROB[i as usize]);
                         //storing the attack table for every possible occupency
-                        self.bishop_attack_table[i as usize][magic_index as usize];
+                        self.bishop_attack_table[i as usize][magic_index as usize] = get_bishop_attack_otfmask(occ,i);
                     }
-                    LEAPER::rook => {
-                        let magic_index = (occ * rook_magics[i as usize]) >> (64 - ROOK_ROB[i as usize]);
+                    SLIDER::rook => {
+                        let magic_index = occ.wrapping_mul(rook_magics[i as usize]) >> (64 - ROOK_ROB[i as usize]);
                         //storing the attack table for every possible occupency
-                        self.rook_attack_table[i as usize][magic_index as usize];
+                        self.rook_attack_table[i as usize][magic_index as usize] = get_rook_attack_otfmask(occ,i);
                     }
                 }
             }  
         } 
+    }
+    //this function here will looko up the pre caculated attack maps for slider pieces
+    // WARNING ::: THIS METHODE EXPECTS THAT "load_slider_table" has been called before hand
+    pub fn lookup_slider(&self,piece:SLIDER,occ:Bitboard,square:u8) -> Bitboard {
+        let mut slider_attack:Bitboard = 0;
+        let mut ocp:Bitboard = occ; 
+        match piece {
+            SLIDER::bishop => {
+                ocp &= self.bishop_attack_mask[square as usize];
+                ocp = occ.wrapping_mul(bishop_magics[square as usize]);
+                ocp >>= 64 - BISHOP_ROB[square as usize];
+                slider_attack = self.bishop_attack_table[square as usize][ocp as usize]; 
+            }
+            SLIDER::rook => {
+                ocp &= self.rook_attack_mask[square as usize];
+                ocp = occ.wrapping_mul(rook_magics[square as usize]);
+                ocp >>= 64 - ROOK_ROB[square as usize];
+                slider_attack = self.rook_attack_table[square as usize][ocp as usize]; 
+            }
+        }
+        slider_attack
     }
     //this will call all of the above methodes to load the attack maps at once 
     pub fn new() -> Self {
@@ -128,6 +162,9 @@ impl AttackMasks {
             pawn_attack_masks: [[0; 64]; 2], 
             king_attack_masks: [0; 64],
             knight_attack_masks: [0; 64],
+            
+            bishop_attack_mask:[0;64],
+            rook_attack_mask:[0;64],
             bishop_attack_table: [[0;512];64],
             rook_attack_table: [[0;4096];64],
         }
@@ -136,8 +173,8 @@ impl AttackMasks {
         self.load_pawn_masks();
         self.load_king_masks();
         self.load_knight_masks();
-        self.load_leaper_table(LEAPER::bishop);
-        self.load_leaper_table(LEAPER::rook);
+        self.load_slider_table(SLIDER::bishop);
+        self.load_slider_table(SLIDER::rook);
     }
 }
 // this returns a bitboard of all the possible attacks a pawn can have
@@ -289,12 +326,12 @@ pub fn get_rook_attack_premask(square: u8) -> Bitboard {
     // Getting the attack rays (horizontal and vertical)
 
     // Rightward horizontal ray
-    for f in (file + 1..=max_file) {
+    for f in file + 1..=max_file {
         set_bit!(mask, rank * 8 + f);
     }
 
     // Downward vertical ray
-    for r in (rank + 1..=max_rank) {
+    for r in rank + 1..=max_rank {
         set_bit!(mask, r * 8 + file);
     }
 
@@ -375,7 +412,7 @@ pub fn get_rook_attack_otfmask(block:Bitboard,square: u8) -> Bitboard {
     // Getting the attack rays (horizontal and vertical)
 
     // Rightward horizontal ray
-    for f in (file + 1..=max_file) {
+    for f in file + 1..=max_file {
         if (1 << rank*8+f) & block != 0 {
             break;
         }
@@ -383,7 +420,7 @@ pub fn get_rook_attack_otfmask(block:Bitboard,square: u8) -> Bitboard {
     }
 
     // Downward vertical ray
-    for r in (rank + 1..=max_rank) {
+    for r in rank + 1..=max_rank {
         set_bit!(mask, r * 8 + file);
         if (1 << r*8+file) & block != 0 {
             break;

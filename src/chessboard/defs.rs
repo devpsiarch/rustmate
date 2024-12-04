@@ -140,7 +140,7 @@ pub enum SIDES {
 }
 
 // i made these assuming am gonna need the queen piece in the future
-pub enum LEAPER {
+pub enum SLIDER {
     bishop,
     rook,
 }

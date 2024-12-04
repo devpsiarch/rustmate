@@ -9,6 +9,14 @@
  * again these are used to index each map to the correct location in an array defined in the
  * Attacks object*/
 
+/*
+* NOTES :
+* when using a occupency that does not block the rays of the slider piece , it some how messes up
+* looking up of the correct attack map , i think this is obviouse due to how this methode uses the
+* magic numbers that are quite randome in a sense . as i solution i think we have to and the block
+* bitboard and the attack map before hand to make sure that the block only contains the right
+* blocking bits ... OR maybe am doing something wrong here*/
+
 // these are the magic indexes for bishop 
 use crate::chessboard::Bitboard;
 pub const bishop_magics: [Bitboard; 64] = [
