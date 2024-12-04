@@ -1,6 +1,6 @@
 // here ze will define the attack masks for each piece so we can directly look them up when we need
 // too in a rather fat way .
-use super::bitboard::{Bitboard,get_lsb};
+use super::bitboard::{Bitboard,get_lsb,bit_count};
 use super::defs::{SIDES};
 use crate::set_bit;
 use crate::pop_bit;
@@ -47,6 +47,8 @@ pub struct AttackMasks {
     pub pawn_attack_masks: [[Bitboard;64];2] ,
     pub king_attack_masks: [Bitboard;64] ,
     pub knight_attack_masks: [Bitboard;64] ,
+    pub bishop_attack_table: [[Bitboard;512];64],
+    pub rook_attack_table: [[Bitboard;4096];64],
 }
 
 /*
@@ -92,6 +94,8 @@ impl AttackMasks {
             pawn_attack_masks: [[0; 64]; 2], 
             king_attack_masks: [0; 64],
             knight_attack_masks: [0; 64],
+            bishop_attack_table: [[0;512];64],
+            rook_attack_table: [[0;4096];64],
         }
     }
     pub fn load_attacks_maps(&mut self){
@@ -243,12 +247,84 @@ pub fn get_rook_attack_premask(square: u8) -> Bitboard {
     }
     mask
 }
+/*
+* we have another version of the above functions that accually work perfectly given an occupency , 
+* they keep tranversing until they hit a pieces , they are quite fast , but goind higher in the
+* project , its better to index all of the possible maps to just look them up using the magic
+* indecies rather then use the below function to get them one by one when looking for moves , but
+* nevertheless we need them so here they are*/
+pub fn get_bishop_attack_otfmask(block:Bitboard,square: u8) -> Bitboard {
+    let mut mask:Bitboard = 0;
+    //get the location of the current square  
+    let rank = square/8;
+    let file = square%8;
+    //getting the attack rays 
+    //we skip the last one before hiting the edge of the board ... idk why ask chess wiki
+    for (r,f) in (rank+1..=7).zip(file+1..=7) {
+        set_bit!(mask,r*8+f);
+        if (1 << r*8+f) & block != 0 {
+            break;
+        }
+    }
+    for (r,f) in (rank+1..=7).zip((0..=file-1).rev()) {
+        set_bit!(mask,r*8+f);
+        if (1 << r*8+f) & block != 0 {
+            break;
+        }
+    }
+    for (r,f) in ((0..=rank-1).rev()).zip(file+1..=7) {
+        set_bit!(mask,r*8+f);
+        if (1 << r*8+f) & block != 0 {
+            break;
+        }
+    }
+    for (r,f) in ((0..=rank-1).rev()).zip((0..=file-1).rev()) {
+        set_bit!(mask,r*8+f);
+        if (1 << r*8+f) & block != 0 {
+            break;
+        }
+    }
+    mask
+}
+//same thing here for the rook
+pub fn get_rook_attack_otfmask(block:Bitboard,square: u8) -> Bitboard {
+    let mut mask:Bitboard = 0;
+    let rank = square/8;
+    let file = square%8;
+    //setting the rays
+    for f in file+1..=7 {
+        set_bit!(mask,rank*8+f);
+        if (1 << rank*8+f) & block != 0 {
+            break;
+        }
+    }
+    for r in rank+1..=7 {
+        set_bit!(mask,r*8+file);
+        if (1 << r*8+file) & block != 0 {
+            break;
+        }
+    }
+    for f in (0..=file-1).rev() {
+        set_bit!(mask,rank*8+f);
+        if (1 << rank*8+f) & block != 0 {
+            break;
+        }
+    }
+    for r in (0..=rank-1).rev() {
+        set_bit!(mask,r*8+file);
+        if (1 << r*8+file) & block != 0 {
+            break;
+        }
+    }
+    mask
+}
 //this function below will help us get all the possible attack paterns of the slider pieces
 //how exacly ? idk but we need it and also another version of mask attack for sliding pieces
 //FUTURE ME :::: please check this is working fine 
-pub fn set_occupency(index:u32,bit_mask:u32,mut attack_map:Bitboard) -> Bitboard {
+pub fn set_occupency(index:u32,mut attack_map:Bitboard) -> Bitboard {
     let mut ocp :Bitboard = 0;
     let mut sqr:u8 = 0;
+    let bit_mask = bit_count(attack_map);
     for i in 0..bit_mask {
         sqr = get_lsb(attack_map);
         pop_bit!(attack_map,sqr);

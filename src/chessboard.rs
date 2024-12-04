@@ -4,6 +4,7 @@ pub mod bitboard;
 use bitboard::{Bitboard};
 mod fen;
 pub mod attacks;
+pub mod magic;
 
 
 #[derive(Clone)]

@@ -41,6 +41,8 @@ pub fn print_bitboard(board : &Bitboard){
         print!("\n");
     }
     print!("\n");
+    //try to remember to remove this later i need it rn to check methodes are working fine
+    println!("A B C D E F G H");
 }
 
 pub fn bit_count(board:Bitboard) -> u8{

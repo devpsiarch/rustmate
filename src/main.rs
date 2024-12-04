@@ -5,6 +5,8 @@ use chessboard::{Chessboard};
 use crate::chessboard::bitboard;
 use crate::chessboard::attacks;
 use crate::chessboard::defs;
+use crate::chessboard::magic;
+use crate::bitboard::Bitboard;
 
 //i will be running tests here untile everything is set and done
 fn main() {
@@ -27,11 +29,18 @@ fn main() {
     //for i in 0..64 {
     //    bitboard::print_bitboard(&test.knight_attack_masks[i]);
     //}
-    let mut test = attacks::get_rook_attack_premask(defs::SQUARE::e4); 
-    pop_bit!(test,defs::SQUARE::e5);
+    let mut occ: Bitboard = 0;
+    set_bit!(occ,defs::SQUARE::d5);
+    set_bit!(occ,defs::SQUARE::e6);
+    set_bit!(occ,defs::SQUARE::g5);
+    set_bit!(occ,defs::SQUARE::e2);
+    let mut test = attacks::get_rook_attack_otfmask(occ,defs::SQUARE::e5); 
     bitboard::print_bitboard(&test);
-    let c = bitboard::bit_count(test);
-    let ksb = bitboard::get_lsb(test);
-    println!("{}",c);
-    println!("{}",ksb);
+    //pop_bit!(test,defs::SQUARE::e5);
+    //bitboard::print_bitboard(&test);
+    //let c = bitboard::bit_count(test);
+    //let ksb = bitboard::get_lsb(test);
+    //println!("{}",c);
+    //println!("{}",ksb);
+
 }
