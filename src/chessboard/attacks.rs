@@ -5,8 +5,8 @@ use super::defs::{SIDES};
 use crate::set_bit;
 use crate::pop_bit;
 use crate::get_bit;
-use crate::magic::bishop_magics;
-use crate::magic::rook_magics;
+use crate::magic::BISHOP_MAGICS;
+use crate::magic::ROOK_MAGICS;
 use crate::defs::SLIDER;
 //these are the bitboards that represent the not X board , for example the not A file means its a
 //bitboard where every bit is set execept the A file is not 
@@ -122,12 +122,12 @@ impl AttackMasks {
                 // using the magic numbers 
                 match piece {
                     SLIDER::bishop => {
-                        let magic_index = occ.wrapping_mul(bishop_magics[i as usize]) >> (64 - BISHOP_ROB[i as usize]);
+                        let magic_index = occ.wrapping_mul(BISHOP_MAGICS[i as usize].magic) >> (64 - BISHOP_ROB[i as usize]);
                         //storing the attack table for every possible occupency
                         self.bishop_attack_table[i as usize][magic_index as usize] = get_bishop_attack_otfmask(occ,i);
                     }
                     SLIDER::rook => {
-                        let magic_index = occ.wrapping_mul(rook_magics[i as usize]) >> (64 - ROOK_ROB[i as usize]);
+                        let magic_index = occ.wrapping_mul(ROOK_MAGICS[i as usize].magic) >> (64 - ROOK_ROB[i as usize]);
                         //storing the attack table for every possible occupency
                         self.rook_attack_table[i as usize][magic_index as usize] = get_rook_attack_otfmask(occ,i);
                     }
@@ -139,19 +139,22 @@ impl AttackMasks {
     // WARNING ::: THIS METHODE EXPECTS THAT "load_slider_table" has been called before hand
     pub fn lookup_slider(&self,piece:SLIDER,occ:Bitboard,square:u8) -> Bitboard {
         let mut slider_attack:Bitboard = 0;
-        let mut ocp:Bitboard = occ; 
+        // the lookup here is much faster and for the "index" variable , am keeping it there to
+        // remind me of what the code originally do
         match piece {
             SLIDER::bishop => {
-                ocp &= self.bishop_attack_mask[square as usize];
-                ocp = occ.wrapping_mul(bishop_magics[square as usize]);
-                ocp >>= 64 - BISHOP_ROB[square as usize];
-                slider_attack = self.bishop_attack_table[square as usize][ocp as usize]; 
+                let entry = &BISHOP_MAGICS[square as usize];
+                let mut hash = occ & entry.mask;
+                hash = hash.wrapping_mul(entry.magic) >> entry.shift;
+                //let index = hash as usize + entry.offset;
+                slider_attack = self.bishop_attack_table[square as usize][hash as usize];
             }
             SLIDER::rook => {
-                ocp &= self.rook_attack_mask[square as usize];
-                ocp = occ.wrapping_mul(rook_magics[square as usize]);
-                ocp >>= 64 - ROOK_ROB[square as usize];
-                slider_attack = self.rook_attack_table[square as usize][ocp as usize]; 
+                let entry = &ROOK_MAGICS[square as usize];
+                let mut hash = occ & entry.mask;
+                hash = hash.wrapping_mul(entry.magic) >> entry.shift;
+                //let index = hash as usize + entry.offset;
+                slider_attack = self.rook_attack_table[square as usize][hash as usize];
             }
         }
         slider_attack
@@ -413,10 +416,10 @@ pub fn get_rook_attack_otfmask(block:Bitboard,square: u8) -> Bitboard {
 
     // Rightward horizontal ray
     for f in file + 1..=max_file {
+        set_bit!(mask, rank * 8 + f);
         if (1 << rank*8+f) & block != 0 {
             break;
         }
-        set_bit!(mask, rank * 8 + f);
     }
 
     // Downward vertical ray

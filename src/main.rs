@@ -11,7 +11,12 @@ use crate::defs::SLIDER;
 
 /*
 * NOTES ::: future me 
-* fix the loading / looking up the slider pieces attack tables for the rook cuz they be ass*/
+* fix the loading / looking up the slider pieces attack tables for the rook cuz they be ass
+* we have these options to fix the rook and bishop indecies {
+* --> find magic numbers availbale online : Crafty and chess Wiki has some zip files
+* --> using hashing : rust provides that and it wont be hard to use
+*   }
+* */
 
 
 //i will be running tests here untile everything is set and done
@@ -36,17 +41,23 @@ fn main() {
     //    bitboard::print_bitboard(&test.knight_attack_masks[i]);
     //}
     let mut occ: Bitboard = 0;
-    set_bit!(occ,defs::SQUARE::d4);
-    set_bit!(occ,defs::SQUARE::h4);
-    //set_bit!(occ,defs::SQUARE::g6);
-    //set_bit!(occ,defs::SQUARE::f4);
-    let mut map = test.lookup_slider(SLIDER::rook,occ,defs::SQUARE::e4);
-    bitboard::print_bitboard(&occ);
-    bitboard::print_bitboard(&map);
-    let rookotf = attacks::get_rook_attack_otfmask(occ,defs::SQUARE::e4);
-    let rookpre = attacks::get_rook_attack_premask(defs::SQUARE::g5);
-    bitboard::print_bitboard(&rookotf);   
-    bitboard::print_bitboard(&rookpre);
+    set_bit!(occ,defs::SQUARE::c2);
+    set_bit!(occ,defs::SQUARE::c6);
+    set_bit!(occ,defs::SQUARE::b1);
+    set_bit!(occ,defs::SQUARE::a1);
+    set_bit!(occ,defs::SQUARE::h2);
+    set_bit!(occ,defs::SQUARE::g6);
+    set_bit!(occ,defs::SQUARE::c1);
+    set_bit!(occ,defs::SQUARE::d1);
+    for i in 0..64 {
+        let map = test.lookup_slider(SLIDER::rook,occ,i);
+        let map2 = attacks::get_rook_attack_otfmask(occ,i);
+        if map != map2 {
+            println!("maps do not match");
+        } 
+    } 
+    //bitboard::print_bitboard(&occ);
+    //bitboard::print_bitboard(&map);
     //let c = bitboard::bit_count(test);
     //let ksb = bitboard::get_lsb(test);
     //println!("{}",c);
