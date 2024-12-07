@@ -1,5 +1,5 @@
 pub mod defs;
-use defs::{SIDES,SQUARE};
+use defs::{SIDES,SQUARE,STARTING_POSITION};
 pub mod bitboard;
 use bitboard::{Bitboard};
 mod fen;
@@ -31,6 +31,13 @@ impl Chessboard {
             half_move_clock : 0,
             move_count : 1,
         } 
+    }
+    // If init function of init_board is still just fen parsing then it needs to go 
+    pub fn init_board(&mut self) {
+        self.parse_fen(STARTING_POSITION);            
+    }
+    pub fn custom_init_board(&mut self,fen_string:&str) {
+        todo!();
     }
     //this may have to be set to private later on
     pub fn reset(&mut self) {

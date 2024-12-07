@@ -22,7 +22,7 @@ use crate::defs::SLIDER;
 //i will be running tests here untile everything is set and done
 fn main() {
     let mut chess = Chessboard::new();
-    chess.parse_fen("rnbqkb1r/pp1p1pPp/8/2p1pP2/1P1P4/3P3P/P1P1P3/RNBQKBNR w KQkq e6 0 1");
+    chess.init_board();
     chess.print_chessboard();   
     chess.parse_fen("r2q1rk1/ppp2ppp/2n1bn2/2b1p3/3pP3/3P1NPP/PPP1NPB1/R1BQ1RK1 b - - 0 9");
     chess.print_chessboard();
@@ -41,21 +41,23 @@ fn main() {
     //    bitboard::print_bitboard(&test.knight_attack_masks[i]);
     //}
     let mut occ: Bitboard = 0;
-    set_bit!(occ,defs::SQUARE::c2);
-    set_bit!(occ,defs::SQUARE::c6);
-    set_bit!(occ,defs::SQUARE::b1);
-    set_bit!(occ,defs::SQUARE::a1);
-    set_bit!(occ,defs::SQUARE::h2);
-    set_bit!(occ,defs::SQUARE::g6);
-    set_bit!(occ,defs::SQUARE::c1);
-    set_bit!(occ,defs::SQUARE::d1);
-    for i in 0..64 {
-        let map = test.lookup_slider(SLIDER::bishop,occ,i);
-        let map2 = attacks::get_bishop_attack_otfmask(occ,i);
-        if map != map2 {
-            println!("maps do not match");
-        } 
-    } 
+
+    set_bit!(occ,defs::SQUARE::c4);
+    set_bit!(occ,defs::SQUARE::e6);
+    set_bit!(occ,defs::SQUARE::g2);
+    set_bit!(occ,defs::SQUARE::f5);
+    bitboard::print_bitboard(&occ);
+    let map1 = test.lookup_slider(SLIDER::rook,occ,defs::SQUARE::e4);
+    let map2 = test.lookup_slider(SLIDER::bishop,occ,defs::SQUARE::e4);
+    let map4 = test.lookup_slider(SLIDER::queen,occ,defs::SQUARE::e4);
+    let map3 = map1 | map2;
+    bitboard::print_bitboard(&map1);
+    bitboard::print_bitboard(&map2);
+    bitboard::print_bitboard(&map3);
+    bitboard::print_bitboard(&map4);
+    if map3 == map4 {
+        println!("Hello queen");
+    }
     //bitboard::print_bitboard(&occ);
     //bitboard::print_bitboard(&map);
     //let c = bitboard::bit_count(test);

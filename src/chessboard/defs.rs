@@ -144,4 +144,7 @@ pub enum SIDES {
 pub enum SLIDER {
     bishop,
     rook,
+    queen,
 }
+
+pub const STARTING_POSITION:&str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";

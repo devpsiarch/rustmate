@@ -113,6 +113,10 @@ impl AttackMasks {
                     self.rook_attack_mask[i as usize] = get_rook_attack_premask(i as u8);
                     attack_mask = self.rook_attack_mask[i as usize];
                 }
+                // We dont load any queen slider movement because we dont have too since queens
+                // moves are a combination between rook and bishop , we store them and when looking
+                // up a move for a queen we OR them and return .
+                SLIDER::queen => {} 
             }
             let bit_count = bit_count(attack_mask);
             let ocp_indecies = 1 << bit_count;
@@ -131,6 +135,8 @@ impl AttackMasks {
                         //storing the attack table for every possible occupency
                         self.rook_attack_table[i as usize][magic_index as usize] = get_rook_attack_otfmask(occ,i);
                     }
+                    // Same here , we dont care about the queen since its the others combined 
+                    SLIDER::queen => {}
                 }
             }  
         } 
@@ -141,6 +147,7 @@ impl AttackMasks {
         let mut slider_attack:Bitboard = 0;
         // the lookup here is much faster and for the "index" variable , am keeping it there to
         // remind me of what the code originally do
+        // we handle each slider alone here even for qeen with is bascilly the both or bishop and 
         match piece {
             SLIDER::bishop => {
                 let entry = &BISHOP_MAGICS[square as usize];
@@ -155,6 +162,12 @@ impl AttackMasks {
                 hash = hash.wrapping_mul(entry.magic) >> entry.shift;
                 //let index = hash as usize + entry.offset;
                 slider_attack = self.rook_attack_table[square as usize][hash as usize];
+            }
+            SLIDER::queen => {
+                // doing the same twice doesnt seem to work so check this out
+                let bishop_map = self.lookup_slider(SLIDER::bishop,occ,square);
+                let rook_map = self.lookup_slider(SLIDER::rook,occ,square);
+                slider_attack = bishop_map | rook_map;
             }
         }
         slider_attack
