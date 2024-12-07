@@ -21,13 +21,13 @@ use crate::defs::SLIDER;
 
 //i will be running tests here untile everything is set and done
 fn main() {
-    //let mut chess = Chessboard::new();
-    //chess.parse_fen("rnbqkb1r/pp1p1pPp/8/2p1pP2/1P1P4/3P3P/P1P1P3/RNBQKBNR w KQkq e6 0 1");
-    //chess.print_chessboard();   
-    //chess.parse_fen("r2q1rk1/ppp2ppp/2n1bn2/2b1p3/3pP3/3P1NPP/PPP1NPB1/R1BQ1RK1 b - - 0 9");
-    //chess.print_chessboard();
-    //chess.parse_fen("r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1");
-    //chess.print_chessboard();
+    let mut chess = Chessboard::new();
+    chess.parse_fen("rnbqkb1r/pp1p1pPp/8/2p1pP2/1P1P4/3P3P/P1P1P3/RNBQKBNR w KQkq e6 0 1");
+    chess.print_chessboard();   
+    chess.parse_fen("r2q1rk1/ppp2ppp/2n1bn2/2b1p3/3pP3/3P1NPP/PPP1NPB1/R1BQ1RK1 b - - 0 9");
+    chess.print_chessboard();
+    chess.parse_fen("r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1");
+    chess.print_chessboard();
     //bitboard::print_bitboard(&attacks::NOT_H_FILE);
     //let mut test = attacks::get_pawn_attack_mask(defs::SQUARE::h4,defs::SIDES::black);
     //bitboard::print_bitboard(&test);
@@ -50,8 +50,8 @@ fn main() {
     set_bit!(occ,defs::SQUARE::c1);
     set_bit!(occ,defs::SQUARE::d1);
     for i in 0..64 {
-        let map = test.lookup_slider(SLIDER::rook,occ,i);
-        let map2 = attacks::get_rook_attack_otfmask(occ,i);
+        let map = test.lookup_slider(SLIDER::bishop,occ,i);
+        let map2 = attacks::get_bishop_attack_otfmask(occ,i);
         if map != map2 {
             println!("maps do not match");
         } 

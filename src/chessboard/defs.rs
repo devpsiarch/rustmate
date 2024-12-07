@@ -127,6 +127,7 @@ impl SQUARE {
     pub const f1: u8 = 61;
     pub const g1: u8 = 62;
     pub const h1: u8 = 63;
+    pub const NO_SQUARE: u8 = 64;
 }
 
 pub const MAX_MOVE_RULE: u8 = 100;

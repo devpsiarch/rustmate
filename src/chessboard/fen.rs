@@ -70,7 +70,20 @@ impl Chessboard {
             if result == Ok(()) {
                 *self = new_board; 
             }
-        } 
+        }
+        // Before returning , here am gonna populate the occupency part of the object 
+        // this i relativly quick
+        // populating white
+        for i in 0..5 {
+            self.occupencies[0] |= self.bitboards[i];
+        }
+        // populating black 
+        for i in 6..11 {
+            self.occupencies[1] |= self.bitboards[i];
+        }
+        // getting both
+        self.occupencies[2] = self.occupencies[0] | self.occupencies[1];
+
         result 
         //each function that is used to parse the FEN string is gonna be checked if anything bad
         //happens ... untile i find a rustier way of doing this 
