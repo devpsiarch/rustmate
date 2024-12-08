@@ -5,14 +5,14 @@ use bitboard::{Bitboard};
 mod fen;
 pub mod attacks;
 pub mod magic;
-pub mod movegen;
+pub mod atkgen;
 
 
 #[derive(Clone)]
 pub struct Chessboard {
-    bitboards : [Bitboard;12],          //for each piece and diff color
+    pub bitboards : [Bitboard;12],          //for each piece and diff color
     side_to_mode : SIDES,               // its an enum carfull
-    occupencies : [Bitboard;3],         // one for black , black and both
+    pub occupencies : [Bitboard;3],         // one for black , black and both
     castling_rights : u8,               // binary rep each bit encodes for a right
     en_passant : u8,                    // number from 0 to 64 for all squares and a NONE option
     half_move_clock : u8,               // regular counter 

@@ -1,7 +1,7 @@
 use super::bitboard::{Bitboard,bit_count};
 use crate::defs::{SLIDER,SIDES};
 use crate::magic::{ROOK_MAGICS,BISHOP_MAGICS,ROOK_MAP_SIZE,BISHOP_MAP_SIZE};
-use crate::chessboard::movegen::{
+use crate::chessboard::atkgen::{
     get_pawn_attack_mask,get_king_attack_mask,get_knight_attack_mask,
     get_bishop_attack_premask,get_bishop_attack_otfmask,
     get_rook_attack_premask,get_rook_attack_otfmask,

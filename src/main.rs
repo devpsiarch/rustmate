@@ -1,14 +1,15 @@
 mod chessboard;
 use chessboard::{Chessboard};
 
+mod moves;
+use crate::moves::init::{attacked_squares};
 //i am using these here just for testing future me , take them down when everything is set
 use crate::chessboard::bitboard;
 use crate::chessboard::attacks;
 use crate::chessboard::defs;
 use crate::chessboard::magic;
-use crate::bitboard::Bitboard;
-use crate::defs::SLIDER;
-
+use crate::bitboard::{print_bitboard,Bitboard};
+use crate::defs::{SIDES,SLIDER};
 /*
 * NOTES ::: future me 
 * fix the loading / looking up the slider pieces attack tables for the rook cuz they be ass
@@ -23,20 +24,19 @@ use crate::defs::SLIDER;
 fn main() {
     let mut chess = Chessboard::new();
     chess.init_board();
-    chess.print_chessboard();   
-    let _ = chess.parse_fen("r2q1rk1/ppp2ppp/2n1bn2/2b1p3/3pP3/3P1NPP/PPP1NPB1/R1BQ1RK1 b - - 0 9");
-    chess.print_chessboard();
-    let _ = chess.parse_fen("r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1");
-    chess.print_chessboard();
-    //bitboard::print_bitboard(&attacks::NOT_H_FILE);
-    //let mut test = attacks::get_pawn_attack_mask(defs::SQUARE::h4,defs::SIDES::BLACK);
-    //bitboard::print_bitboard(&test);
-    //test = attacks::get_king_attack_mask(defs::SQUARE::h4);
-    //bitboard::print_bitboard(&test);
-    //test = attacks::get_knight_attack_mask(defs::SQUARE::h4);
-    //bitboard::print_bitboard(&test);
     let mut test = attacks::AttackMasks::new();
     test.load_attacks_maps();
+    
+    set_bit!(chess.bitboards[defs::Pieces::Q],defs::SQUARE::e5); 
+    chess.print_chessboard();   
+
+    if chess.square_attacked(&test,SIDES::WHITE,defs::SQUARE::c4) == true {
+        println!("attacked");
+    }
+    
+    let atk = attacked_squares(&chess,&test,SIDES::WHITE); 
+    print_bitboard(&atk);
+    return;
     //for i in 0..64 {
     //    bitboard::print_bitboard(&test.knight_attack_masks[i]);
     //}
