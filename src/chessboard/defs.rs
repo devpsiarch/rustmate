@@ -16,14 +16,6 @@ impl Pieces {
     pub const q: usize = 10; // Black Queen
     pub const k: usize = 11; // Black King
 }
-//This does the same job as the SIDES , i just use it to see the color thats all 
-//yea i know am stupid shut up
-pub struct Color;
-#[allow(non_upper_case_globals)]
-impl Color {
-    pub const white: usize = 0; 
-    pub const black: usize = 1;
-}
 
 //we use these to describe the castling rights as a binary number 0 0 0 0 (K,Q,k,q)
 pub struct Castle;
@@ -52,9 +44,11 @@ pub const SQUARE_NAME: [&str; 65] = [
     "NONE"
 ];
 
+
+//please excuse the disgusting code , i dont know a better way in rust
 pub struct SQUARE;
 #[allow(non_upper_case_globals)]
-//please excuse the disgusting code , i dont know a better way in rust
+#[allow(dead_code)]
 impl SQUARE {
     pub const a8: u8 = 0;
     pub const b8: u8 = 1;
@@ -136,15 +130,15 @@ pub const MAX_GAME_MOVES: u16 = 2048;
 #[allow(non_camel_case_types)]
 
 pub enum SIDES {
-    white,
-    black,
+    WHITE,
+    BLACK,
 }
 
 // i made these assuming am gonna need the queen piece in the future
 pub enum SLIDER {
-    bishop,
-    rook,
-    queen,
+    BISHOP,
+    ROOK,
+    QUEEN,
 }
 
 pub const STARTING_POSITION:&str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";

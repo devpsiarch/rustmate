@@ -112,8 +112,8 @@ impl Chessboard {
         println!("   A B C D E F G H");
         // sides here duh 
         match self.side_to_mode {
-            SIDES::white  => print!("White"),
-            SIDES::black => print!("black"),
+            SIDES::WHITE  => print!("White"),
+            SIDES::BLACK => print!("black"),
 
         } 
         println!(" to move");
@@ -185,8 +185,8 @@ fn load_board(board :&mut Chessboard,part:&str) -> bool {
 fn load_side_to_move(board :&mut Chessboard,part:&str) -> bool{
     let letter = part.chars().next().unwrap(); 
     board.side_to_mode = match letter {
-        'w' => SIDES::white,
-        'b' => SIDES::black,
+        'w' => SIDES::WHITE,
+        'b' => SIDES::BLACK,
         _ => return false,
     };
     return true

@@ -5,6 +5,7 @@ use bitboard::{Bitboard};
 mod fen;
 pub mod attacks;
 pub mod magic;
+pub mod movegen;
 
 
 #[derive(Clone)]
@@ -24,7 +25,7 @@ impl Chessboard {
     pub fn new() -> Self {
         Self {
             bitboards : [0;12], 
-            side_to_mode : SIDES::white,
+            side_to_mode : SIDES::WHITE,
             occupencies:[0;3],
             castling_rights : 0,
             en_passant : SQUARE::NO_SQUARE,            //i define 64 as none as in no en passant are availble
@@ -34,15 +35,15 @@ impl Chessboard {
     }
     // If init function of init_board is still just fen parsing then it needs to go 
     pub fn init_board(&mut self) {
-        self.parse_fen(STARTING_POSITION);            
-    }
-    pub fn custom_init_board(&mut self,fen_string:&str) {
-        todo!();
+        match self.parse_fen(STARTING_POSITION) {
+            Ok(()) => {}
+            Err(error_code) => panic!("failed to parse fen from init_board : code {error_code}")
+        }
     }
     //this may have to be set to private later on
     pub fn reset(&mut self) {
         self.bitboards = [0;12];
-        self.side_to_mode = SIDES::white;
+        self.side_to_mode = SIDES::WHITE;
         self.occupencies = [0;3];
         self.castling_rights = 0;
         self.en_passant = 64;

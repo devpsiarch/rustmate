@@ -1,0 +1,344 @@
+use crate::{set_bit,pop_bit,get_bit};
+use crate::defs::{SIDES};
+use crate::bitboard::{Bitboard,bit_count,get_lsb};
+// here ze will define the attack masks for each piece so we can directly look them up when we need
+// too in a rather fat way .
+
+//these are the bitboards that represent the not X board , for example the not A file means its a
+//bitboard where every bit is set execept the A file is not 
+//theu are used for precalculating the attack masks 
+//sorry for storing them in decimal
+const NOT_A_FILE : Bitboard = 18374403900871474942;
+const NOT_H_FILE : Bitboard = 9187201950435737471;
+const NOT_GH_FILE: Bitboard = 4557430888798830399;
+const NOT_AB_FILE: Bitboard = 18229723555195321596; 
+/*
+* these will be used later to calculate the indeces to index the attack tables 
+* */
+// Maybe i wont need these anymore so remember it take it out if so
+/*
+* we are supposed to use the arrays below to get the magic indecies , but sence i have them already
+* , i wont need them
+// Bishop relevant occupancy bits for each position
+const BISHOP_ROB: [u64; 64] = [
+    6, 5, 5, 5, 5, 5, 5, 6,
+    5, 5, 5, 5, 5, 5, 5, 5,
+    5, 5, 7, 7, 7, 7, 5, 5,
+    5, 5, 7, 9, 9, 7, 5, 5,
+    5, 5, 7, 9, 9, 7, 5, 5,
+    5, 5, 7, 7, 7, 7, 5, 5,
+    5, 5, 5, 5, 5, 5, 5, 5,
+    6, 5, 5, 5, 5, 5, 5, 6,
+];
+
+// Rook relevant occupancy bits for each position
+const ROOK_ROB: [u64; 64] = [
+    12, 11, 11, 11, 11, 11, 11, 12,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    11, 10, 10, 10, 10, 10, 10, 11,
+    12, 11, 11, 11, 11, 11, 11, 12,
+];
+*/
+/*
+* In this aproches we are gonna encode all the possible attack paterns of each pieces to make for
+* easier calculations , in the case for leaper pieces : knight , pawn , king its very straight
+* forward on how we can do that , and when there is a blocking pieces we can just perfrom some bit
+* operations and get the map we need 
+* in the case for the other sliding pieces , we can do the same so , out main objective is to get
+* all the possible attack maps for each case of blocking , again this is gonna be worth it in the
+* long run beacause the look up is far faster then to just loop around when making moves .
+*
+* for slider pieces after getting the the possible attack maps , its left that we define a spicial
+* indexing methodes to find the corresponding map , kinda like creating out own hash map
+* */
+
+
+// These are helper function if you havnt notices 
+// this returns a bitboard of all the possible attacks a pawn can have
+pub fn get_pawn_attack_mask(square: u8,color: SIDES) -> Bitboard {
+    //we declare the mask that we are gonna return 
+    let mut mask : Bitboard = 0;
+    // we declare this temp to hold the value of 1 theat we wanna add , it wont work otherwise
+    let mut temp: Bitboard = 0;
+    set_bit!(temp,square);
+    match color {
+        //in the case for each color we check if the attack possition is out of bounds
+        //by anding the not a/h file to check
+        SIDES::WHITE => {
+            if NOT_A_FILE & temp >> 7 != 0 {
+                mask |= temp >> 7;
+        }
+            if NOT_H_FILE & temp >> 9 != 0 {
+                mask |= temp >> 9;
+            }
+        }
+        SIDES::BLACK => {
+            if NOT_H_FILE & temp << 7 != 0 {
+                mask |= temp << 7;
+            }
+            if NOT_A_FILE & temp << 9 != 0 {
+                mask |= temp << 9;
+            }
+        }
+    }
+    mask
+}
+//this does the same for the kings pieces
+pub fn get_king_attack_mask(square: u8) -> Bitboard {
+    //we declare the mask that we are gonna return 
+    let mut mask : Bitboard = 0;
+    // we declare this temp to hold the value of 1 theat we wanna add , it wont work otherwise
+    let mut temp: Bitboard = 0;
+    set_bit!(temp,square);
+    // we dont need to worry about the up and the down squares because they wont overlap
+    //up square
+    mask |= temp >> 8;
+    if (temp >> 1) & NOT_H_FILE != 0 {
+        mask |= temp >> 1;
+    }
+    if (temp >> 9) & NOT_H_FILE != 0 {
+        mask |= temp >> 9;
+    }
+    if (temp >> 7) & NOT_A_FILE != 0 {
+        mask |= temp >> 7;
+    }
+
+    //down square
+    mask |= temp << 8;
+    if (temp << 1) & NOT_A_FILE != 0 {
+        mask |= temp << 1;
+    }
+    if (temp << 9) & NOT_A_FILE != 0 {
+        mask |= temp << 9;
+    }
+    if (temp << 7) & NOT_H_FILE != 0 {
+        mask |= temp << 7;
+    } 
+    mask
+}
+//the same is done for this one as well , this time for the knight
+pub fn get_knight_attack_mask(square: u8) -> Bitboard {
+    //we declare the mask that we are gonna return 
+    let mut mask : Bitboard = 0;
+    // we declare this temp to hold the value of 1 theat we wanna add , it wont work otherwise
+    let mut temp: Bitboard = 0;
+    set_bit!(temp,square);
+    // and this is for shifts (it really is easy when you have dont this before)
+    if (temp >> 6) & NOT_AB_FILE != 0 {
+        mask |= temp >> 6;
+    }
+    if (temp >> 15) & NOT_A_FILE != 0 {
+        mask |= temp >> 15;
+    }
+
+    if (temp >> 17) & NOT_H_FILE != 0 {
+        mask |= temp >> 17;
+    }
+    if (temp >> 10) & NOT_GH_FILE != 0 {
+        mask |= temp >> 10;
+    }
+
+    // Downward shifts (left shifts)
+    if (temp << 6) & NOT_GH_FILE != 0 {
+        mask |= temp << 6;
+    }
+    if (temp << 15) & NOT_H_FILE != 0 {
+        mask |= temp << 15;
+    }
+
+    if (temp << 17) & NOT_A_FILE != 0 {
+        mask |= temp << 17;
+    }
+    if (temp << 10) & NOT_AB_FILE != 0 {
+        mask |= temp << 10;
+    }
+    mask
+}
+// this func will get up the attack mask the rook , but not quite ...
+// it is no complete and this would be used to get the accual maps
+pub fn get_bishop_attack_premask(square: u8) -> Bitboard {
+    let mut mask: Bitboard = 0;
+    // get the location of the current square
+    let rank = square / 8;
+    let file = square % 8;
+
+    // ensure the rank and file are within bounds
+    let min_rank = 1;
+    let max_rank = 6;
+    let min_file = 1;
+    let max_file = 6;
+
+    // getting the attack rays
+    // Up-right diagonal
+    for (r, f) in (rank + 1..=max_rank).zip(file + 1..=max_file) {
+        set_bit!(mask, r * 8 + f);
+    }
+    // Down-right diagonal
+    for (r, f) in (rank + 1..=max_rank).zip((min_file..file).rev()) {
+        set_bit!(mask, r * 8 + f);
+    }
+    // Up-left diagonal
+    for (r, f) in ((min_rank..rank).rev()).zip(file + 1..=max_file) {
+        set_bit!(mask, r * 8 + f);
+    }
+    // Down-left diagonal
+    for (r, f) in ((min_rank..rank).rev()).zip((min_file..file).rev()) {
+        set_bit!(mask, r * 8 + f);
+    }
+
+    mask
+}
+//same thing here for the rook
+pub fn get_rook_attack_premask(square: u8) -> Bitboard {
+    let mut mask: Bitboard = 0;
+    let rank = square / 8;
+    let file = square % 8;
+
+    // Ensure the rank and file are within bounds
+    let min_rank = 1;
+    let max_rank = 6;
+    let min_file = 1;
+    let max_file = 6;
+
+    // Getting the attack rays (horizontal and vertical)
+
+    // Rightward horizontal ray
+    for f in file + 1..=max_file {
+        set_bit!(mask, rank * 8 + f);
+    }
+
+    // Downward vertical ray
+    for r in rank + 1..=max_rank {
+        set_bit!(mask, r * 8 + file);
+    }
+
+    // Leftward horizontal ray
+    for f in (min_file..file).rev() {
+        set_bit!(mask, rank * 8 + f);
+    }
+
+    // Upward vertical ray
+    for r in (min_rank..rank).rev() {
+        set_bit!(mask, r * 8 + file);
+    }
+
+    mask
+}
+/*
+* we have another version of the above functions that accually work perfectly given an occupency , 
+* they keep tranversing until they hit a pieces , they are quite fast , but goind higher in the
+* project , its better to index all of the possible maps to just look them up using the magic
+* indecies rather then use the below function to get them one by one when looking for moves , but
+* nevertheless we need them so here they are*/
+pub fn get_bishop_attack_otfmask(block:Bitboard,square: u8) -> Bitboard {
+    let mut mask: Bitboard = 0;
+    // get the location of the current square
+    let rank = square / 8;
+    let file = square % 8;
+
+    // ensure the rank and file are within bounds
+    let min_rank = 0;
+    let max_rank = 7;
+    let min_file = 0;
+    let max_file = 7;
+
+    // getting the attack rays
+    // Up-right diagonal
+    for (r, f) in (rank + 1..=max_rank).zip(file + 1..=max_file) {
+        set_bit!(mask, r * 8 + f);
+        if (1 << r*8+f) & block != 0 {
+            break;
+        }
+    }
+    // Down-right diagonal
+    for (r, f) in (rank + 1..=max_rank).zip((min_file..file).rev()) {
+        set_bit!(mask, r * 8 + f);
+        if (1 << r*8+f) & block != 0 {
+            break;
+        }
+    }
+    // Up-left diagonal
+    for (r, f) in ((min_rank..rank).rev()).zip(file + 1..=max_file) {
+        set_bit!(mask, r * 8 + f);
+        if (1 << r*8+f) & block != 0 {
+            break;
+        }
+    }
+    // Down-left diagonal
+    for (r, f) in ((min_rank..rank).rev()).zip((min_file..file).rev()) {
+        set_bit!(mask, r * 8 + f);
+        if (1 << r*8+f) & block != 0 {
+            break;
+        }
+    }
+
+    mask
+}
+//same thing here for the rook
+pub fn get_rook_attack_otfmask(block:Bitboard,square: u8) -> Bitboard {
+    let mut mask: Bitboard = 0;
+    let rank = square / 8;
+    let file = square % 8;
+
+    // Ensure the rank and file are within bounds
+    let min_rank = 0;
+    let max_rank = 7;
+    let min_file = 0;
+    let max_file = 7;
+
+    // Getting the attack rays (horizontal and vertical)
+
+    // Rightward horizontal ray
+    for f in file + 1..=max_file {
+        set_bit!(mask, rank * 8 + f);
+        if (1 << rank*8+f) & block != 0 {
+            break;
+        }
+    }
+
+    // Downward vertical ray
+    for r in rank + 1..=max_rank {
+        set_bit!(mask, r * 8 + file);
+        if (1 << r*8+file) & block != 0 {
+            break;
+        }
+    }
+
+    // Leftward horizontal ray
+    for f in (min_file..file).rev() {
+        set_bit!(mask, rank * 8 + f);
+        if (1 << rank*8+f) & block != 0 {
+            break;
+        }
+    }
+
+    // Upward vertical ray
+    for r in (min_rank..rank).rev() {
+        set_bit!(mask, r * 8 + file);
+        if (1 << r*8+file) & block != 0 {
+            break;
+        }
+    }
+
+    mask
+}
+//this function below will help us get all the possible attack paterns of the slider pieces
+//how exacly ? idk but we need it and also another version of mask attack for sliding pieces
+//FUTURE ME :::: please check this is working fine 
+pub fn set_occupency(index:u32,mut attack_map:Bitboard) -> Bitboard {
+    let mut ocp :Bitboard = 0;
+    let mut sqr:u8;
+    let bit_mask = bit_count(attack_map);
+    for i in 0..bit_mask {
+        sqr = get_lsb(attack_map);
+        pop_bit!(attack_map,sqr);
+        if index & (1 << i) != 0 {
+            ocp |= 1 << sqr;
+        }
+    }
+    return ocp;
+}
