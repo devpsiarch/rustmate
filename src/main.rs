@@ -2,7 +2,7 @@ mod chessboard;
 use chessboard::{Chessboard};
 
 mod moves;
-use crate::moves::init::{attacked_squares};
+use crate::moves::MoveGenerator;
 //i am using these here just for testing future me , take them down when everything is set
 use crate::chessboard::bitboard;
 use crate::chessboard::attacks;
@@ -26,16 +26,15 @@ fn main() {
     chess.init_board();
     let mut test = attacks::AttackMasks::new();
     test.load_attacks_maps();
-    
-    set_bit!(chess.bitboards[defs::Pieces::Q],defs::SQUARE::e5); 
+    set_bit!(chess.bitboards[defs::Pieces::p],defs::SQUARE::a4); 
     chess.print_chessboard();   
-
-    if chess.square_attacked(&test,SIDES::WHITE,defs::SQUARE::c4) == true {
-        println!("attacked");
+    let generator = MoveGenerator::new(&chess,&test);    
+    if generator.square_attacked(SIDES::BLACK,defs::SQUARE::f3) {
+        println!("Attacked and working");
     }
-    
-    let atk = attacked_squares(&chess,&test,SIDES::WHITE); 
-    print_bitboard(&atk);
+    let mut atk = generator.attacked_squares(SIDES::BLACK);
+    print_bitboard(&chess.occupencies[2]);
+    generator.generate_pawn_moves(SIDES::WHITE); 
     return;
     //for i in 0..64 {
     //    bitboard::print_bitboard(&test.knight_attack_masks[i]);

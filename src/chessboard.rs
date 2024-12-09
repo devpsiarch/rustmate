@@ -1,5 +1,5 @@
 pub mod defs;
-use defs::{SIDES,SQUARE,STARTING_POSITION};
+use defs::{SIDES,SQUARE,STARTING_POSITION,KILLER_POSITION};
 pub mod bitboard;
 use bitboard::{Bitboard};
 mod fen;
@@ -35,7 +35,7 @@ impl Chessboard {
     }
     // If init function of init_board is still just fen parsing then it needs to go 
     pub fn init_board(&mut self) {
-        match self.parse_fen(STARTING_POSITION) {
+        match self.parse_fen(KILLER_POSITION) {
             Ok(()) => {}
             Err(error_code) => panic!("failed to parse fen from init_board : code {error_code}")
         }
