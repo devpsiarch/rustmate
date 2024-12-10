@@ -82,40 +82,45 @@ impl<'a> MoveGenerator<'_> {
     // them
     pub fn generate_pawn_moves(&self,color:SIDES) {
         let mut bitboard:Bitboard = 0;
-        let mut helper_bitboard:Bitboard = 0;       // This will come in handy
+        let mut atk:Bitboard = 0;       // This will come in handy
         match color {
             SIDES::WHITE => {
                 bitboard = self.board.bitboards[Pieces::P];
-                let mut src:usize;
-                let mut dst:usize;
+                let mut src:i8;
+                let mut dst:i8;
                 while bitboard != 0 {
-                    src = get_lsb(bitboard) as usize;
+                    src = get_lsb(bitboard) as i8;
                     dst = src-8;
-                    // Here we use the helper to see if we are in a rank that lets us double jump
-                    set_bit!(helper_bitboard,dst);
-                    // Check if we can go forward by ANDING the both occupencies for BLACK and WHITE
-                    if helper_bitboard & self.board.occupencies[2] == 0 {
-                        // Check if moving forward is a promotion
-                        if helper_bitboard & RANK_1 != 0 || helper_bitboard & RANK_8 != 0{
-                            println!("Pawn promotes from {} to {}",SQUARE_NAME[src],SQUARE_NAME[dst]);
+                    // Check if we can generate "quite" moves as in jumping forward
+                    if dst >= SQUARE::a8.try_into().unwrap() && get_bit!(self.board.occupencies[2],dst) == 0 {
+                        // Check if the newt jump ahead is a pawn promotion which happens if the
+                        // dst is in the last rank 
+                        if src >= SQUARE::a7.try_into().unwrap() && src <=SQUARE::h7.try_into().unwrap() {
+                            // Well consider every possible promotions here
+                            println!("Pawn from {} to {} Promotion to queen ",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            println!("Pawn from {} to {} Promotion to rook ",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            println!("Pawn from {} to {} Promotion to bishop ",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            println!("Pawn from {} to {} Promotion to knight ",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
-                        // Then the move is just a move forward
-                        else{
-                            println!("Pawn move from {} to {}",SQUARE_NAME[src],SQUARE_NAME[dst]);
-                        }
-                    }
-                    // Check if we can double jump
-                    kill_board!(helper_bitboard);
-                    set_bit!(helper_bitboard,src);
-                    if helper_bitboard & RANK_2 != 0 {
-                        kill_board!(helper_bitboard);
-                        set_bit!(helper_bitboard,dst-8);
-                        if helper_bitboard & self.board.occupencies[2] == 0 {
-                            println!("Pawn doubles jumps from {} to {}",SQUARE_NAME[src],SQUARE_NAME[dst-8]);
+                        else {
+                            // We check the normal fashion 1 square ahead move 
+                            println!("pawn from {} to {} ",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            // We check if we can double jump here only if we are in the starting rank
+                            if src >= SQUARE::a2.try_into().unwrap() && src <= SQUARE::h2.try_into().unwrap() 
+                                && get_bit!(self.board.occupencies[2],dst-8) == 0{
+                                println!("pawn from {} to {} double jump ",SQUARE_NAME[src as usize],SQUARE_NAME[(dst-8) as usize]);
+                            }
                         }
                     }
-                    // Double jump if piece is in its double jump rank 2 for WHITE and 7 for BLACK 
-                    kill_board!(helper_bitboard);
+                    // Checking if "Attacks" are available
+                    atk = self.attacks.pawn_attack_masks[Pieces::P][src as usize] & self.board.occupencies[1];   
+                    if atk != 0 {
+                        while atk != 0 {
+                            let killed = get_lsb(atk);
+                            println!("Pawn Captures from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[killed as usize]);
+                            pop_bit!(atk,killed);
+                        } 
+                    }
                     pop_bit!(bitboard,src);
                 }
             }

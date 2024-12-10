@@ -74,11 +74,11 @@ impl Chessboard {
         // Before returning , here am gonna populate the occupency part of the object 
         // this i relativly quick
         // populating white
-        for i in 0..6 {
+        for i in Pieces::P..=Pieces::K {
             self.occupencies[0] |= self.bitboards[i];
         }
         // populating black 
-        for i in 6..12 {
+        for i in Pieces::p..=Pieces::k {
             self.occupencies[1] |= self.bitboards[i];
         }
         // getting both

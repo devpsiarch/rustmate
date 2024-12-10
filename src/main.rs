@@ -26,14 +26,13 @@ fn main() {
     chess.init_board();
     let mut test = attacks::AttackMasks::new();
     test.load_attacks_maps();
-    set_bit!(chess.bitboards[defs::Pieces::p],defs::SQUARE::a4); 
     chess.print_chessboard();   
     let generator = MoveGenerator::new(&chess,&test);    
     if generator.square_attacked(SIDES::BLACK,defs::SQUARE::f3) {
         println!("Attacked and working");
     }
     let mut atk = generator.attacked_squares(SIDES::BLACK);
-    print_bitboard(&chess.occupencies[2]);
+    print_bitboard(&chess.occupencies[1]);
     generator.generate_pawn_moves(SIDES::WHITE); 
     return;
     //for i in 0..64 {
