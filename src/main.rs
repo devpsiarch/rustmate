@@ -38,6 +38,7 @@ fn main() {
     print_bitboard(&chess.occupencies[COLOR::BOTH]);
     generator.generate_pawn_moves();
     generator.generate_castle_moves();
+    generator.generate_knight_moves();
     return;
     //for i in 0..64 {
     //    bitboard::print_bitboard(&test.knight_attack_masks[i]);

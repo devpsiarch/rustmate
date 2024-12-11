@@ -2,14 +2,7 @@
 * Well define some essential methodes here*/
 use crate::moves::MoveGenerator; 
 use crate::chessboard::defs::{COLOR,SQUARE_NAME,SIDES,SLIDER,Pieces,SQUARE,Castle};
-use crate::{kill_board,get_bit,pop_bit,set_bit, chessboard::bitboard::{Bitboard,get_lsb}};
-
-// These are used to check if a pawn can jump two squares for black and white 
-const RANK_7:Bitboard = 65280;
-const RANK_2:Bitboard = 71776119061217280;
-// These are used to detect promotions
-const RANK_1:Bitboard = 18374686479671623680;
-const RANK_8:Bitboard = 255;
+use crate::{kill_board,get_bit,pop_bit,set_bit, chessboard::bitboard::{Bitboard,get_lsb,print_bitboard}};
 /*
 * For now the move genearation prints the available moves but later on , either we return a vec of
 * the moves or store them in a attribute of said object , and thats only when we encoded them in
@@ -265,4 +258,65 @@ impl<'a> MoveGenerator<'_> {
             }
         }
     }
+    // Getting the attacks available for knight depending on who is up for the next to move
+    pub fn generate_knight_moves(&self) {
+        // We get the attack maps and make sure if we land in a friendly piece , then we skip that
+        // move and go for another
+        let mut bitboard:Bitboard = 0 ;
+        let mut atk:Bitboard = 0;
+        match self.board.side_to_move {
+            SIDES::WHITE => {
+                bitboard = self.board.bitboards[Pieces::N];
+                let mut src:u8;
+                while bitboard != 0 {
+                    src = get_lsb(bitboard); 
+                    atk = self.attacks.knight_attack_masks[src as usize];
+                    let mut dst:u8;
+                    while atk != 0 {
+                        dst = get_lsb(atk);
+                        // No friendly piece in the attacked square 
+                        if get_bit!(self.board.occupencies[COLOR::w],dst) != 1 {
+                            // Here am specifing if am CAPTURING a piece or just chilling
+                            // The case for capturing
+                            if get_bit!(self.board.occupencies[COLOR::b],dst) == 1 {
+                                println!("White knight Capture from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            }
+                            // Case for a chill knight ... 
+                            else{
+                                println!("White knight from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            }
+                        }
+                        pop_bit!(atk,dst);
+                    }
+                    pop_bit!(bitboard,src);
+                }
+            }
+            SIDES::BLACK => {
+                bitboard = self.board.bitboards[Pieces::n];
+                let mut src:u8;
+                while bitboard != 0 {
+                    src = get_lsb(bitboard); 
+                    atk = self.attacks.knight_attack_masks[src as usize];
+                    let mut dst:u8;
+                    while atk != 0 {
+                        dst = get_lsb(atk);
+                        // No friendly piece in the attacked square 
+                        if get_bit!(self.board.occupencies[COLOR::b],dst) != 1 {
+                            // Here am specifing if am CAPTURING a piece or just chilling
+                            // The case for capturing
+                            if get_bit!(self.board.occupencies[COLOR::w],dst) == 1 {
+                                println!("Black knight Capture from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            }
+                            // Case for a chill knight ... 
+                            else{
+                                println!("Black knight from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            }
+                        }
+                        pop_bit!(atk,dst);
+                    }
+                    pop_bit!(bitboard,src);
+                }
+            }
+        }
+    } 
 }
