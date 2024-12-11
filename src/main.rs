@@ -9,7 +9,7 @@ use crate::chessboard::attacks;
 use crate::chessboard::defs;
 use crate::chessboard::magic;
 use crate::bitboard::{print_bitboard,Bitboard};
-use crate::defs::{SIDES,SLIDER};
+use crate::defs::{COLOR,SIDES,SLIDER,Pieces,SQUARE};
 /*
 * NOTES ::: future me 
 * fix the loading / looking up the slider pieces attack tables for the rook cuz they be ass
@@ -32,8 +32,8 @@ fn main() {
         println!("Attacked and working");
     }
     let mut atk = generator.attacked_squares(SIDES::BLACK);
-    print_bitboard(&chess.occupencies[1]);
-    generator.generate_pawn_moves(SIDES::WHITE); 
+    //print_bitboard(&chess.occupencies[COLOR::w]);
+    generator.generate_pawn_moves(); 
     return;
     //for i in 0..64 {
     //    bitboard::print_bitboard(&test.knight_attack_masks[i]);

@@ -129,6 +129,17 @@ pub const MAX_GAME_MOVES: u16 = 2048;
 #[derive(Clone)]
 #[allow(non_camel_case_types)]
 
+// I dont know why i need 2 type , i dont realy , am too lazy to refactor any code for the moment
+// This will only be used to index OCCUPENCY bitboards just for ellustration pupposes
+// Bro i dont want to index with 0 and 1 , its bad enough and ugly
+pub struct COLOR;
+impl COLOR {
+    pub const w:usize    = 0;
+    pub const b:usize    = 1;
+    pub const BOTH:usize = 2;
+} 
+
+#[derive(Clone)]
 pub enum SIDES {
     WHITE,
     BLACK,
