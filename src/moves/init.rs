@@ -377,5 +377,63 @@ impl<'a> MoveGenerator<'_> {
                 }
             }
         }
-    } 
+    }
+    // Gets possible attacks from bishops
+    // This methode will bassicly be the same for each slider piece
+    pub fn generate_bishop_moves(&self) {
+        let mut bitboard:Bitboard = 0;
+        let mut atk:Bitboard = 0;
+        match self.board.side_to_move {
+            SIDES::WHITE => {
+                bitboard = self.board.bitboards[Pieces::B];
+                let mut src:u8;
+                while bitboard != 0 {
+                    src = get_lsb(bitboard);
+                    atk = self.attacks.lookup_slider(SLIDER::BISHOP,self.board.occupencies[COLOR::BOTH],src); 
+                    let mut dst:u8; 
+                    while atk != 0 {
+                        dst = get_lsb(atk);
+                        // Checking if we are not killing a friendly
+                        if get_bit!(self.board.occupencies[COLOR::w],dst) != 1 {
+                            // Checking if we are killing an enemy  
+                            if get_bit!(self.board.occupencies[COLOR::b],dst) == 1 {
+                                println!("white Bishop Captures from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            }
+                            // else its just chilling 
+                            else {
+                                println!("white Bishop moves from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            }
+                        }
+                        pop_bit!(atk,dst);
+                    }
+                    pop_bit!(bitboard,src);
+                }
+            }
+            SIDES::BLACK => {
+                bitboard = self.board.bitboards[Pieces::b];
+                let mut src:u8;
+                while bitboard != 0 {
+                    src = get_lsb(bitboard);
+                    atk = self.attacks.lookup_slider(SLIDER::BISHOP,self.board.occupencies[COLOR::BOTH],src); 
+                    let mut dst:u8; 
+                    while atk != 0 {
+                        dst = get_lsb(atk);
+                        // Checking if we are not killing a friendly
+                        if get_bit!(self.board.occupencies[COLOR::b],dst) != 1 {
+                            // Checking if we are killing an enemy  
+                            if get_bit!(self.board.occupencies[COLOR::w],dst) == 1 {
+                                println!("black Bishop Captures from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            }
+                            // else its just chilling 
+                            else {
+                                println!("black Bishop moves from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            }
+                        }
+                        pop_bit!(atk,dst);
+                    }
+                    pop_bit!(bitboard,src);
+                }
+            }
+        }
+    }
 }
