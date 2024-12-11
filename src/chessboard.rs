@@ -1,9 +1,10 @@
 pub mod defs;
-use defs::{COLOR,SQUARE_NAME,SIDES,SQUARE,STARTING_POSITION,CMK_POSITION,TRICKY_POSITION};
+use defs::{Pieces,COLOR,SQUARE_NAME,SIDES,SQUARE,STARTING_POSITION,CMK_POSITION,TRICKY_POSITION};
 pub mod bitboard;
 use bitboard::{Bitboard};
 use crate::set_bit;
 use crate::get_bit;
+use crate::pop_bit;
 mod fen;
 pub mod attacks;
 pub mod magic;
@@ -15,7 +16,7 @@ pub struct Chessboard {
     pub bitboards : [Bitboard;12],          //for each piece and diff color
     pub side_to_move : SIDES,               // its an enum carfull
     pub occupencies : [Bitboard;3],         // one for black , black and both
-    castling_rights : u8,               // binary rep each bit encodes for a right
+    pub castling_rights : u8,               // binary rep each bit encodes for a right
     pub en_passant : u8,                    // number from 0 to 64 for all squares and a NONE option
     half_move_clock : u8,               // regular counter 
     move_count : u16,                  // same here 
@@ -37,7 +38,7 @@ impl Chessboard {
     }
     // If init function of init_board is still just fen parsing then it needs to go 
     pub fn init_board(&mut self) {
-        match self.parse_fen("rnbqkb1r/pp2P1pp/5n2/1N6/2BPp3/8/PPP4P/R1BQK1NR b - d3 0 1") {
+        match self.parse_fen(TRICKY_POSITION) {
             Ok(()) => {}
             Err(error_code) => panic!("failed to parse fen from init_board : code {error_code}")
         }
@@ -57,6 +58,19 @@ impl Chessboard {
                 SIDES::WHITE => println!("Spawning {} side white on {} is not permitable",piece,SQUARE_NAME[square as usize]),
                 SIDES::BLACK => println!("Spawning {} side black on {} is not permitable",piece,SQUARE_NAME[square as usize]),
             }
+        }
+    }
+    // This methode is the complement for the methode above and used only for testing 
+    pub fn pop_square(&mut self,square:u8) {
+        // Erasses a piece for the Chessboard object disregarding any rules of implications that
+        // may cause , THIS IS NOT A PART OF MAKING A MOVE 
+        for i in Pieces::P..=Pieces::k {
+            println!("{}",i);
+            pop_bit!(self.bitboards[i as usize],square);
+        }
+        for i in COLOR::w..=COLOR::BOTH {
+            pop_bit!(self.occupencies[i as usize],square);
+            println!("{}",i);
         }
     }
     //this may have to be set to private later on

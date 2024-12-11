@@ -1,7 +1,7 @@
 /*
 * Well define some essential methodes here*/
 use crate::moves::MoveGenerator; 
-use crate::chessboard::defs::{COLOR,SQUARE_NAME,SIDES,SLIDER,Pieces,SQUARE};
+use crate::chessboard::defs::{COLOR,SQUARE_NAME,SIDES,SLIDER,Pieces,SQUARE,Castle};
 use crate::{kill_board,get_bit,pop_bit,set_bit, chessboard::bitboard::{Bitboard,get_lsb}};
 
 // These are used to check if a pawn can jump two squares for black and white 
@@ -10,7 +10,10 @@ const RANK_2:Bitboard = 71776119061217280;
 // These are used to detect promotions
 const RANK_1:Bitboard = 18374686479671623680;
 const RANK_8:Bitboard = 255;
-
+/*
+* For now the move genearation prints the available moves but later on , either we return a vec of
+* the moves or store them in a attribute of said object , and thats only when we encoded them in
+* some way or another*/
 impl<'a> MoveGenerator<'_> {
     pub fn square_attacked(&self,color:SIDES,square:u8) -> bool {
         /*
@@ -208,5 +211,58 @@ impl<'a> MoveGenerator<'_> {
         }
 
 
-    }  
+    }
+    // This methodes as the name suggest it generates the castle moves
+    pub fn generate_castle_moves(&self) {
+        // Here out only job is to generate castle moves GIVEN the caslte rights , 
+        // In other words , we only check IF WE CAN CASTLE , and no if WE HAVE CASLTE RIGHTS
+        // Castle Rights only change if one of the rooks or the king moves from a specific location
+        // and that happens when we MAKE A MOVE , so that will be handeled by the MAKING MOVES
+        // mothodes not here what so ever 
+        match self.board.side_to_move {
+            SIDES::WHITE => {
+                // We check if the castling rights are set 
+                // then check of the "Path is cleared" for making the move
+                // then we check if the "Path" is not attacked by the enemy
+                if self.board.castling_rights & Castle::K != 0 
+                && get_bit!(self.board.occupencies[COLOR::BOTH],SQUARE::f1) == 0
+                && get_bit!(self.board.occupencies[COLOR::BOTH],SQUARE::g1) == 0
+                && self.square_attacked(SIDES::BLACK,SQUARE::f1) == false              
+                && self.square_attacked(SIDES::BLACK,SQUARE::g1) == false //where kings lands 
+                && self.square_attacked(SIDES::BLACK,SQUARE::e1) == false{// Check king square
+                    println!("white King caslte from {} to {}",SQUARE_NAME[SQUARE::e1 as usize],SQUARE_NAME[SQUARE::g1 as usize]);
+                }
+
+                if self.board.castling_rights & Castle::Q != 0 
+                && get_bit!(self.board.occupencies[COLOR::BOTH],SQUARE::b1) == 0
+                && get_bit!(self.board.occupencies[COLOR::BOTH],SQUARE::c1) == 0
+                && get_bit!(self.board.occupencies[COLOR::BOTH],SQUARE::d1) == 0
+                && self.square_attacked(SIDES::BLACK,SQUARE::d1) == false 
+                && self.square_attacked(SIDES::BLACK,SQUARE::c1) == false  //King landing
+                && self.square_attacked(SIDES::BLACK,SQUARE::e1) == false {// for king square
+                    println!("white queen caslte from {} to {}",SQUARE_NAME[SQUARE::e1 as usize],SQUARE_NAME[SQUARE::c1 as usize]);
+                }
+            }
+            SIDES::BLACK => {
+                if self.board.castling_rights & Castle::k != 0 
+                && get_bit!(self.board.occupencies[COLOR::BOTH],SQUARE::f8) == 0
+                && get_bit!(self.board.occupencies[COLOR::BOTH],SQUARE::g8) == 0
+                && self.square_attacked(SIDES::WHITE,SQUARE::f8) == false
+                && self.square_attacked(SIDES::WHITE,SQUARE::g8) == false //king landing here
+                && self.square_attacked(SIDES::WHITE,SQUARE::e8) == false{// Check kings square
+                    println!("black king caslte from {} to {}",SQUARE_NAME[SQUARE::e8 as usize],SQUARE_NAME[SQUARE::g8 as usize]);
+                }
+
+                if self.board.castling_rights & Castle::q != 0 
+                && get_bit!(self.board.occupencies[COLOR::BOTH],SQUARE::b8) == 0
+                && get_bit!(self.board.occupencies[COLOR::BOTH],SQUARE::c8) == 0
+                && get_bit!(self.board.occupencies[COLOR::BOTH],SQUARE::d8) == 0
+                && self.square_attacked(SIDES::WHITE,SQUARE::d8) == false 
+                && self.square_attacked(SIDES::WHITE,SQUARE::c8) == false //king landing
+                && self.square_attacked(SIDES::WHITE,SQUARE::e8) == false{// king square
+                    println!("black queen caslte from {} to {}",SQUARE_NAME[SQUARE::e8 as usize],SQUARE_NAME[SQUARE::c8 as usize]);
+                }
+            }
+        }
+    }
 }
