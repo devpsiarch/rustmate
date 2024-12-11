@@ -39,6 +39,7 @@ fn main() {
     generator.generate_pawn_moves();
     generator.generate_castle_moves();
     generator.generate_knight_moves();
+    generator.generate_king_moves();
     return;
     //for i in 0..64 {
     //    bitboard::print_bitboard(&test.knight_attack_masks[i]);

@@ -258,6 +258,65 @@ impl<'a> MoveGenerator<'_> {
             }
         }
     }
+    // Here we generate the moves for King piece
+    pub fn generate_king_moves(&self) {
+        // Same buisness , get attack table and deal with each landing square 
+        // BUT !!! we have to make sure that the square that we land on doesnt make us in check 
+        // SO THEY LANDINGS MUST BE NOT ATTACKED
+        let mut atk:Bitboard = 0;
+        match self.board.side_to_move {
+            SIDES::WHITE => {
+                // Here we assume that there exists only one king in the whole board which is true 
+                // WARNING : HAVING MORE KINGS FOR EXPIREMENTATION REQUESTS A CHANGE HERE !!!
+                let src:usize = get_lsb(self.board.bitboards[Pieces::K]) as usize;
+                atk = self.attacks.king_attack_masks[src];
+                let mut dst:u8;
+                while atk != 0 {
+                    dst = get_lsb(atk);
+                    // Making sure the landing square is not attacked by the enemy
+                    if self.square_attacked(SIDES::BLACK,dst) == false {
+                        // Check if we can even move there because of some friendly piece 
+                        if get_bit!(self.board.occupencies[COLOR::w],dst) != 1 {
+                            // If the move is a Capture move
+                            if get_bit!(self.board.occupencies[COLOR::b],dst) == 1 {
+                                println!("White King Captures from {} to {}",SQUARE_NAME[src],SQUARE_NAME[dst as usize]);
+                            }
+                            // Else it is just a normal move
+                            else {
+                                println!("White King moves from {} to {}",SQUARE_NAME[src],SQUARE_NAME[dst as usize]);
+                            }
+                        } 
+                    }
+                    pop_bit!(atk,dst);
+                }
+            }
+            SIDES::BLACK => {
+                // Here we assume that there exists only one king in the whole board which is true 
+                // WARNING : HAVING MORE KINGS FOR EXPIREMENTATION REQUESTS A CHANGE HERE !!!
+                let src:usize = get_lsb(self.board.bitboards[Pieces::k]) as usize;
+                atk = self.attacks.king_attack_masks[src];
+                let mut dst:u8;
+                while atk != 0 {
+                    dst = get_lsb(atk);
+                    // Making sure the landing square is not attacked by the enemy
+                    if self.square_attacked(SIDES::WHITE,dst) == false {
+                        // Check if we can even move there because of some friendly piece 
+                        if get_bit!(self.board.occupencies[COLOR::b],dst) != 1 {
+                            // If the move is a Capture move
+                            if get_bit!(self.board.occupencies[COLOR::w],dst) == 1 {
+                                println!("Black King Captures from {} to {}",SQUARE_NAME[src],SQUARE_NAME[dst as usize]);
+                            }
+                            // Else it is just a normal move
+                            else {
+                                println!("Black King moves from {} to {}",SQUARE_NAME[src],SQUARE_NAME[dst as usize]);
+                            }
+                        } 
+                    }
+                    pop_bit!(atk,dst);
+                }
+            }
+        }
+    }
     // Getting the attacks available for knight depending on who is up for the next to move
     pub fn generate_knight_moves(&self) {
         // We get the attack maps and make sure if we land in a friendly piece , then we skip that
