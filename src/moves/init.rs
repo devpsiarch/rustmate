@@ -1,5 +1,10 @@
 /*
-* Well define some essential methodes here*/
+* Well define some essential methodes here and while were at maybe ill just impliment a little 
+* Pseudo move genearator nothing serious ... that was sarcasm BTW 
+* NOTE: IDK if declaring a small varible to store src and dst for each eteration is a good idea , i
+* dont know if that will cost more time in the future , so i gotta do tests and check if making
+* declaring thme once and changing them makes a difference from just making and freeing them when
+* out scop*/
 use crate::moves::MoveGenerator; 
 use crate::chessboard::defs::{COLOR,SQUARE_NAME,SIDES,SLIDER,Pieces,SQUARE,Castle};
 use crate::{kill_board,get_bit,pop_bit,set_bit, chessboard::bitboard::{Bitboard,get_lsb,print_bitboard}};
@@ -418,6 +423,112 @@ impl<'a> MoveGenerator<'_> {
                         // else its just chilling 
                         else {
                             println!("black Bishop moves from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                        }
+                        pop_bit!(atk,dst);
+                    }
+                    pop_bit!(bitboard,src);
+                }
+            }
+        }
+    }
+    // This methode will bassicly be the same for each slider piece
+    pub fn generate_rook_moves(&self) {
+        let mut bitboard:Bitboard = 0;
+        let mut atk:Bitboard = 0;
+        match self.board.side_to_move {
+            SIDES::WHITE => {
+                bitboard = self.board.bitboards[Pieces::R];
+                let mut src:u8;
+                while bitboard != 0 {
+                    src = get_lsb(bitboard);
+                    // Cheking for betrayals .... am going insane
+                    atk = self.attacks.lookup_slider(SLIDER::ROOK,self.board.occupencies[COLOR::BOTH],src) & !self.board.occupencies[COLOR::w]; 
+                    let mut dst:u8; 
+                    while atk != 0 {
+                        dst = get_lsb(atk);
+                        // Checking if we are killing an enemy  
+                        if get_bit!(self.board.occupencies[COLOR::b],dst) == 1 {
+                            println!("white ROOK Captures from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                        }
+                        // else its just chilling 
+                        else {
+                            println!("white Rook moves from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                        }
+                        pop_bit!(atk,dst);
+                    }
+                    pop_bit!(bitboard,src);
+                }
+            }
+            SIDES::BLACK => {
+                bitboard = self.board.bitboards[Pieces::r];
+                let mut src:u8;
+                while bitboard != 0 {
+                    src = get_lsb(bitboard);
+                    atk = self.attacks.lookup_slider(SLIDER::ROOK,self.board.occupencies[COLOR::BOTH],src) & !self.board.occupencies[COLOR::b]; 
+                    let mut dst:u8; 
+                    while atk != 0 {
+                        dst = get_lsb(atk);
+                        // "DO NOT TRUST SHAPERD !!" 
+                        // Checking if we are killing an enemy  
+                        if get_bit!(self.board.occupencies[COLOR::w],dst) == 1 {
+                            println!("black Rook Captures from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                        }
+                        // else its just chilling 
+                        else {
+                            println!("black Rook moves from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                        }
+                        pop_bit!(atk,dst);
+                    }
+                    pop_bit!(bitboard,src);
+                }
+            }
+        }
+    }
+    // This methode will bassicly be the same for each slider piece
+    pub fn generate_queen_moves(&self) {
+        let mut bitboard:Bitboard = 0;
+        let mut atk:Bitboard = 0;
+        match self.board.side_to_move {
+            SIDES::WHITE => {
+                bitboard = self.board.bitboards[Pieces::Q];
+                let mut src:u8;
+                while bitboard != 0 {
+                    src = get_lsb(bitboard);
+                    // Cheking for betrayals .... am going insane
+                    atk = self.attacks.lookup_slider(SLIDER::QUEEN,self.board.occupencies[COLOR::BOTH],src) & !self.board.occupencies[COLOR::w]; 
+                    let mut dst:u8; 
+                    while atk != 0 {
+                        dst = get_lsb(atk);
+                        // Checking if we are killing an enemy  
+                        if get_bit!(self.board.occupencies[COLOR::b],dst) == 1 {
+                            println!("white Queen Captures from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                        }
+                        // else its just chilling 
+                        else {
+                            println!("white Queen moves from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                        }
+                        pop_bit!(atk,dst);
+                    }
+                    pop_bit!(bitboard,src);
+                }
+            }
+            SIDES::BLACK => {
+                bitboard = self.board.bitboards[Pieces::q];
+                let mut src:u8;
+                while bitboard != 0 {
+                    src = get_lsb(bitboard);
+                    atk = self.attacks.lookup_slider(SLIDER::QUEEN,self.board.occupencies[COLOR::BOTH],src) & !self.board.occupencies[COLOR::b]; 
+                    let mut dst:u8; 
+                    while atk != 0 {
+                        dst = get_lsb(atk);
+                        // "DO NOT TRUST SHAPERD !!" 
+                        // Checking if we are killing an enemy  
+                        if get_bit!(self.board.occupencies[COLOR::w],dst) == 1 {
+                            println!("black Queen Captures from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                        }
+                        // else its just chilling 
+                        else {
+                            println!("black Queen moves from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         pop_bit!(atk,dst);
                     }

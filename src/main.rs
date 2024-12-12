@@ -41,6 +41,8 @@ fn main() {
     generator.generate_knight_moves();
     generator.generate_king_moves();
     generator.generate_bishop_moves();
+    generator.generate_rook_moves();
+    generator.generate_queen_moves();
     return;
     //for i in 0..64 {
     //    bitboard::print_bitboard(&test.knight_attack_masks[i]);
