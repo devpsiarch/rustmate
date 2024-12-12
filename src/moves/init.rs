@@ -269,23 +269,21 @@ impl<'a> MoveGenerator<'_> {
                 // Here we assume that there exists only one king in the whole board which is true 
                 // WARNING : HAVING MORE KINGS FOR EXPIREMENTATION REQUESTS A CHANGE HERE !!!
                 let src:usize = get_lsb(self.board.bitboards[Pieces::K]) as usize;
-                atk = self.attacks.king_attack_masks[src];
+                // "I trusted you king ..." just checking for friendly fire
+                atk = self.attacks.king_attack_masks[src] & !self.board.occupencies[COLOR::w];
                 let mut dst:u8;
                 while atk != 0 {
                     dst = get_lsb(atk);
                     // Making sure the landing square is not attacked by the enemy
                     if self.square_attacked(SIDES::BLACK,dst) == false {
-                        // Check if we can even move there because of some friendly piece 
-                        if get_bit!(self.board.occupencies[COLOR::w],dst) != 1 {
-                            // If the move is a Capture move
-                            if get_bit!(self.board.occupencies[COLOR::b],dst) == 1 {
-                                println!("White King Captures from {} to {}",SQUARE_NAME[src],SQUARE_NAME[dst as usize]);
-                            }
-                            // Else it is just a normal move
-                            else {
-                                println!("White King moves from {} to {}",SQUARE_NAME[src],SQUARE_NAME[dst as usize]);
-                            }
-                        } 
+                        // If the move is a Capture move
+                        if get_bit!(self.board.occupencies[COLOR::b],dst) == 1 {
+                            println!("White King Captures from {} to {}",SQUARE_NAME[src],SQUARE_NAME[dst as usize]);
+                        }
+                        // Else it is just a normal move
+                        else {
+                            println!("White King moves from {} to {}",SQUARE_NAME[src],SQUARE_NAME[dst as usize]);
+                        }
                     }
                     pop_bit!(atk,dst);
                 }
@@ -294,23 +292,22 @@ impl<'a> MoveGenerator<'_> {
                 // Here we assume that there exists only one king in the whole board which is true 
                 // WARNING : HAVING MORE KINGS FOR EXPIREMENTATION REQUESTS A CHANGE HERE !!!
                 let src:usize = get_lsb(self.board.bitboards[Pieces::k]) as usize;
-                atk = self.attacks.king_attack_masks[src];
+                // Why so much comment you ask ? well cur am an idiot and will forget what each
+                // line do , bear with me ... again , i dont want friendly KIA
+                atk = self.attacks.king_attack_masks[src] & !self.board.occupencies[COLOR::b];
                 let mut dst:u8;
                 while atk != 0 {
                     dst = get_lsb(atk);
                     // Making sure the landing square is not attacked by the enemy
                     if self.square_attacked(SIDES::WHITE,dst) == false {
-                        // Check if we can even move there because of some friendly piece 
-                        if get_bit!(self.board.occupencies[COLOR::b],dst) != 1 {
-                            // If the move is a Capture move
-                            if get_bit!(self.board.occupencies[COLOR::w],dst) == 1 {
-                                println!("Black King Captures from {} to {}",SQUARE_NAME[src],SQUARE_NAME[dst as usize]);
-                            }
-                            // Else it is just a normal move
-                            else {
-                                println!("Black King moves from {} to {}",SQUARE_NAME[src],SQUARE_NAME[dst as usize]);
-                            }
-                        } 
+                        // If the move is a Capture move
+                        if get_bit!(self.board.occupencies[COLOR::w],dst) == 1 {
+                            println!("Black King Captures from {} to {}",SQUARE_NAME[src],SQUARE_NAME[dst as usize]);
+                        }
+                        // Else it is just a normal move
+                        else {
+                            println!("Black King moves from {} to {}",SQUARE_NAME[src],SQUARE_NAME[dst as usize]);
+                        }
                     }
                     pop_bit!(atk,dst);
                 }
@@ -328,22 +325,21 @@ impl<'a> MoveGenerator<'_> {
                 bitboard = self.board.bitboards[Pieces::N];
                 let mut src:u8;
                 while bitboard != 0 {
-                    src = get_lsb(bitboard); 
-                    atk = self.attacks.knight_attack_masks[src as usize];
+                    src = get_lsb(bitboard);
+                    // We AND it with the NOT of its friendly to make sure it wont capture friendly
+                    // pieces
+                    atk = self.attacks.knight_attack_masks[src as usize] & !self.board.occupencies[COLOR::w];
                     let mut dst:u8;
                     while atk != 0 {
                         dst = get_lsb(atk);
-                        // No friendly piece in the attacked square 
-                        if get_bit!(self.board.occupencies[COLOR::w],dst) != 1 {
-                            // Here am specifing if am CAPTURING a piece or just chilling
-                            // The case for capturing
-                            if get_bit!(self.board.occupencies[COLOR::b],dst) == 1 {
-                                println!("White knight Capture from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
-                            }
-                            // Case for a chill knight ... 
-                            else{
-                                println!("White knight from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
-                            }
+                        // Here am specifing if am CAPTURING a piece or just chilling
+                        // The case for capturing
+                        if get_bit!(self.board.occupencies[COLOR::b],dst) == 1 {
+                            println!("White knight Capture from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                        }
+                        // Case for a chill knight ... 
+                        else{
+                            println!("White knight from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         pop_bit!(atk,dst);
                     }
@@ -354,22 +350,20 @@ impl<'a> MoveGenerator<'_> {
                 bitboard = self.board.bitboards[Pieces::n];
                 let mut src:u8;
                 while bitboard != 0 {
-                    src = get_lsb(bitboard); 
-                    atk = self.attacks.knight_attack_masks[src as usize];
+                    src = get_lsb(bitboard);
+                    // Check we are not betraying our own 
+                    atk = self.attacks.knight_attack_masks[src as usize] & !self.board.occupencies[COLOR::b];
                     let mut dst:u8;
                     while atk != 0 {
                         dst = get_lsb(atk);
-                        // No friendly piece in the attacked square 
-                        if get_bit!(self.board.occupencies[COLOR::b],dst) != 1 {
-                            // Here am specifing if am CAPTURING a piece or just chilling
-                            // The case for capturing
-                            if get_bit!(self.board.occupencies[COLOR::w],dst) == 1 {
-                                println!("Black knight Capture from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
-                            }
-                            // Case for a chill knight ... 
-                            else{
-                                println!("Black knight from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
-                            }
+                        // Here am specifing if am CAPTURING a piece or just chilling
+                        // The case for capturing
+                        if get_bit!(self.board.occupencies[COLOR::w],dst) == 1 {
+                            println!("Black knight Capture from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                        }
+                        // Case for a chill knight ... 
+                        else{
+                            println!("Black knight from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         pop_bit!(atk,dst);
                     }
@@ -389,20 +383,18 @@ impl<'a> MoveGenerator<'_> {
                 let mut src:u8;
                 while bitboard != 0 {
                     src = get_lsb(bitboard);
-                    atk = self.attacks.lookup_slider(SLIDER::BISHOP,self.board.occupencies[COLOR::BOTH],src); 
+                    // Cheking for betrayals .... am going insane
+                    atk = self.attacks.lookup_slider(SLIDER::BISHOP,self.board.occupencies[COLOR::BOTH],src) & !self.board.occupencies[COLOR::w]; 
                     let mut dst:u8; 
                     while atk != 0 {
                         dst = get_lsb(atk);
-                        // Checking if we are not killing a friendly
-                        if get_bit!(self.board.occupencies[COLOR::w],dst) != 1 {
-                            // Checking if we are killing an enemy  
-                            if get_bit!(self.board.occupencies[COLOR::b],dst) == 1 {
-                                println!("white Bishop Captures from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
-                            }
-                            // else its just chilling 
-                            else {
-                                println!("white Bishop moves from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
-                            }
+                        // Checking if we are killing an enemy  
+                        if get_bit!(self.board.occupencies[COLOR::b],dst) == 1 {
+                            println!("white Bishop Captures from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                        }
+                        // else its just chilling 
+                        else {
+                            println!("white Bishop moves from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         pop_bit!(atk,dst);
                     }
@@ -414,20 +406,18 @@ impl<'a> MoveGenerator<'_> {
                 let mut src:u8;
                 while bitboard != 0 {
                     src = get_lsb(bitboard);
-                    atk = self.attacks.lookup_slider(SLIDER::BISHOP,self.board.occupencies[COLOR::BOTH],src); 
+                    atk = self.attacks.lookup_slider(SLIDER::BISHOP,self.board.occupencies[COLOR::BOTH],src) & !self.board.occupencies[COLOR::b]; 
                     let mut dst:u8; 
                     while atk != 0 {
                         dst = get_lsb(atk);
-                        // Checking if we are not killing a friendly
-                        if get_bit!(self.board.occupencies[COLOR::b],dst) != 1 {
-                            // Checking if we are killing an enemy  
-                            if get_bit!(self.board.occupencies[COLOR::w],dst) == 1 {
-                                println!("black Bishop Captures from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
-                            }
-                            // else its just chilling 
-                            else {
-                                println!("black Bishop moves from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
-                            }
+                        // "DO NOT TRUST SHAPERD !!" 
+                        // Checking if we are killing an enemy  
+                        if get_bit!(self.board.occupencies[COLOR::w],dst) == 1 {
+                            println!("black Bishop Captures from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                        }
+                        // else its just chilling 
+                        else {
+                            println!("black Bishop moves from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         pop_bit!(atk,dst);
                     }

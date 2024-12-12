@@ -26,8 +26,8 @@ fn main() {
     chess.init_board();
     let mut test = attacks::AttackMasks::new();
     test.load_attacks_maps();
-    //chess.spawn_piece(Pieces::N,SIDES::WHITE,SQUARE::g8);
-    //chess.spawn_piece(Pieces::N,SIDES::WHITE,SQUARE::b8);
+    chess.spawn_piece(Pieces::Q,SQUARE::c8);
+    chess.spawn_piece(Pieces::p,SQUARE::d8);
     //chess.pop_square(SQUARE::e2);
     chess.print_chessboard();   
     let generator = MoveGenerator::new(&chess,&test);
@@ -35,7 +35,7 @@ fn main() {
         println!("Attacked and working");
     }
     let mut atk = generator.attacked_squares(SIDES::BLACK);
-    print_bitboard(&chess.occupencies[COLOR::BOTH]);
+    //print_bitboard(&chess.occupencies[COLOR::BOTH]);
     generator.generate_pawn_moves();
     generator.generate_castle_moves();
     generator.generate_knight_moves();

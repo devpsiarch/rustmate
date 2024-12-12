@@ -38,26 +38,26 @@ impl Chessboard {
     }
     // If init function of init_board is still just fen parsing then it needs to go 
     pub fn init_board(&mut self) {
-        match self.parse_fen("rnb2b1r/pppp1qpp/8/2k1N3/3P1p2/2NBBK2/PPP3PP/R6R w - - 0 1") {
+        match self.parse_fen(TRICKY_POSITION) {
             Ok(()) => {}
             Err(error_code) => panic!("failed to parse fen from init_board : code {error_code}")
         }
     }
     // This just spawns a pices for a side as long as there is not pre existing piece there with NO REGARD to any chess rule 
     // AGAIN THIS DOES NOT PRODUCE MOVES , THIS IS USED FOR TESTING
-    pub fn spawn_piece(&mut self,piece:usize,color:SIDES,square:u8) {
+    pub fn spawn_piece(&mut self,piece:usize,square:u8) {
         if get_bit!(self.occupencies[COLOR::BOTH],square) != 1 {
             set_bit!(self.bitboards[piece],square);
             set_bit!(self.occupencies[COLOR::BOTH],square);
-            match color {
-                SIDES::WHITE => set_bit!(self.occupencies[COLOR::w],square),
-                SIDES::BLACK => set_bit!(self.occupencies[COLOR::b],square),
+            match piece {
+                // If the piece if white
+                piece if piece >= Pieces::P && piece <= Pieces::K => set_bit!(self.occupencies[COLOR::w],square),
+                // If tje piece is black
+                piece if piece >= Pieces::p && piece <= Pieces::k => set_bit!(self.occupencies[COLOR::b],square),
+                _ => println!("No such piece , go play something else lil bro"),
             }
         }else{
-            match color {
-                SIDES::WHITE => println!("Spawning {} side white on {} is not permitable",piece,SQUARE_NAME[square as usize]),
-                SIDES::BLACK => println!("Spawning {} side black on {} is not permitable",piece,SQUARE_NAME[square as usize]),
-            }
+            println!("Spawning {} side white on {} is not permitable",piece,SQUARE_NAME[square as usize]);
         }
     }
     // This methode is the complement for the methode above and used only for testing 
