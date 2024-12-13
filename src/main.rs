@@ -26,8 +26,8 @@ fn main() {
     chess.init_board();
     let mut test = attacks::AttackMasks::new();
     test.load_attacks_maps();
-    chess.spawn_piece(Pieces::Q,SQUARE::c8);
-    chess.spawn_piece(Pieces::p,SQUARE::d8);
+    //chess.spawn_piece(Pieces::Q,SQUARE::c8);
+    //chess.spawn_piece(Pieces::p,SQUARE::d8);
     //chess.pop_square(SQUARE::e2);
     chess.print_chessboard();   
     let generator = MoveGenerator::new(&chess,&test);
