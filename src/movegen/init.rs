@@ -5,7 +5,7 @@
 * dont know if that will cost more time in the future , so i gotta do tests and check if making
 * declaring thme once and changing them makes a difference from just making and freeing them when
 * out scop*/
-use crate::moves::MoveGenerator; 
+use crate::movegen::MoveGenerator; 
 use crate::chessboard::defs::{COLOR,SQUARE_NAME,SIDES,SLIDER,Pieces,SQUARE,Castle};
 use crate::{kill_board,get_bit,pop_bit,set_bit, chessboard::bitboard::{Bitboard,get_lsb,print_bitboard}};
 /*

@@ -18,7 +18,7 @@
     0100 0000 0000 0000 0000 0000    enpassant flag      0x400000
     1000 0000 0000 0000 0000 0000    castling flag       0x800000
 */
-use crate::chessboard::defs::{Pieces};
+use crate::chessboard::defs::{SQUARE_NAME,UNICODE_PIECES,Pieces};
 pub type Move = u32;             // sure 4 bits unused is better then nothing
 type Move_decoder = fn(m:Move) -> u8;
 const ENCODING_SIZE: usize = 8;
@@ -34,6 +34,8 @@ impl MOVE_MASK {
     pub const EN_PASSANT_FLAG:Move    = 0x400000;
     pub const CASTLE_FLAG:Move        = 0x800000;
 }
+
+
 // I will use macros to decode and encode the moves , IDK if this will be faster but looking at it
 // , i could use absolutly nothing so in that case am using macros 
 // am not handling jack ass here , why ? no one will use this but me wytb ?
@@ -44,6 +46,9 @@ macro_rules! encode_move {
         | ($enpassant << 22) | ($castle << 23) 
     };
 }
+/*
+* Here in contrast we shift because we want exact infomation about the MOVE
+*/
 #[macro_export]
 macro_rules! get_move_src {
     ($mv:expr) => (
@@ -68,27 +73,69 @@ macro_rules! get_move_promotion {
         ($mv & MOVE_MASK::PROMOTION) >> 16
     )
 }
+/*
+* In the other macros that check for just one bit , we dont need to shift , we just need to check
+* if that macros returns a number (the bit is set) or returns a 0 (bit is not set)
+* IDK i thought i would waste that time on shifting 
+*/
+
 #[macro_export]
 macro_rules! get_move_capture {
     ($mv:expr) => (
-        ($mv & MOVE_MASK::CAPTURE_FLAG) >> 20
+        $mv & MOVE_MASK::CAPTURE_FLAG
     )
 }
 #[macro_export]
 macro_rules! get_move_doublejump {
     ($mv:expr) => (
-        ($mv & MOVE_MASK::DOUBLE_JUMP_FLAG) >> 21
+        $mv & MOVE_MASK::DOUBLE_JUMP_FLAG
     )
 }
 #[macro_export]
 macro_rules! get_move_enpassant {
     ($mv:expr) => (
-        ($mv & MOVE_MASK::EN_PASSANT_FLAG) >> 22
+        $mv & MOVE_MASK::EN_PASSANT_FLAG
     )
 }
 #[macro_export]
 macro_rules! get_move_castle {
     ($mv:expr) => (
-        ($mv & MOVE_MASK::CASTLE_FLAG) >> 23
+        $mv & MOVE_MASK::CASTLE_FLAG
     )
+}
+// Tread this as the print bitboard function , no methode no nohing just a helper that you will
+// only use once or twice to test then complety forget
+pub fn show_move(mv:Move) {
+    let src = get_move_src!(mv);
+    let dst = get_move_dst!(mv);
+    let p = get_move_piece!(mv);
+    let promo = get_move_promotion!(mv);
+    let cap = get_move_capture!(mv);
+    let d = get_move_doublejump!(mv);
+    let enpassant = get_move_enpassant!(mv);
+    let cast = get_move_castle!(mv);
+    println!("move src {}",SQUARE_NAME[src as usize]);
+    println!("move dst {}",SQUARE_NAME[dst as usize]);
+    println!("move piece {}",UNICODE_PIECES[p as usize]);
+    println!("move promo piece {}",UNICODE_PIECES[promo as usize]);
+    if cap != 0 {
+        println!("move capture");
+    } else {
+        println!("move no capture");
+    }
+    if d != 0 {
+        println!("move double jump");
+    } else {
+        println!("move No double jump");
+    }
+    if enpassant != 0 {
+        println!("move enpassant");
+    } else {
+        println!("move no enpassant");
+    }
+    if cast != 0 {
+        println!("move castle");
+    } else {
+        println!("move no caste");
+    }
 }

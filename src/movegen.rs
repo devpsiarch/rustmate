@@ -1,5 +1,6 @@
 pub mod init;
-pub mod encodemove;
+pub mod movecode;
+pub mod movelist;
 use crate::Chessboard;
 use crate::attacks::AttackMasks;
 use crate::bitboard::{Bitboard};
@@ -22,15 +23,12 @@ impl<'a> MoveGenerator<'a> {
     }
     // We wont change Self here no matter what , this only and only gets us the moves
     pub fn Generate_moves(&self) {
-        let mut src_square:u8;
-        let mut dst_square:u8;
-
-        let mut bitboard:Bitboard;
-        let mut attack_tables:Bitboard;
-
-        for piece in Pieces::P..=Pieces::k {
-            bitboard = self.board.bitboards[piece];
-            // Getting moves for each piece here
-        }
+        self.generate_pawn_moves();
+        self.generate_castle_moves();
+        self.generate_knight_moves();
+        self.generate_king_moves();
+        self.generate_bishop_moves();
+        self.generate_rook_moves();
+        self.generate_queen_moves();
     }
 }
