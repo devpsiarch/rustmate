@@ -3,13 +3,14 @@ use chessboard::{Chessboard};
 
 mod moves;
 use crate::moves::MoveGenerator;
+use crate::moves::encodemove::{Move,MOVE_MASK};
 //i am using these here just for testing future me , take them down when everything is set
 use crate::chessboard::bitboard;
 use crate::chessboard::attacks;
 use crate::chessboard::defs;
 use crate::chessboard::magic;
 use crate::bitboard::{print_bitboard,Bitboard};
-use crate::defs::{COLOR,SIDES,SLIDER,Pieces,SQUARE};
+use crate::defs::{COLOR,SIDES,SLIDER,Pieces,SQUARE,SQUARE_NAME};
 /*
 * NOTES ::: future me 
 * fix the loading / looking up the slider pieces attack tables for the rook cuz they be ass
@@ -20,8 +21,19 @@ use crate::defs::{COLOR,SIDES,SLIDER,Pieces,SQUARE};
 * */
 
 
+
 //i will be running tests here untile everything is set and done
 fn main() {
+    let m:Move = encode_move!(SQUARE::e4 as Move,SQUARE::e5 as Move,Pieces::N as Move,1,0,0,0,0); 
+    let src = get_move_src!(m);
+    let dst = get_move_dst!(m);
+    let p = get_move_piece!(m);
+    let promo = get_move_promotion!(m);
+    println!("move src {}",SQUARE_NAME[src as usize]);
+    println!("move dst {}",SQUARE_NAME[dst as usize]);
+    println!("move piece {}",p);
+    println!("move promo piece {}",promo);
+    //return;
     let mut chess = Chessboard::new();
     chess.init_board();
     let mut test = attacks::AttackMasks::new();

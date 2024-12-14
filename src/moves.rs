@@ -1,5 +1,5 @@
 pub mod init;
-pub mod create;
+pub mod encodemove;
 use crate::Chessboard;
 use crate::attacks::AttackMasks;
 use crate::bitboard::{Bitboard};
