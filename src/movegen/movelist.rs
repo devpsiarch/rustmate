@@ -6,7 +6,11 @@ use crate::movegen::movecode::{Move};
 use crate::{
     get_move_dst,
     get_move_src,
+    get_move_capture,
+    get_move_castle,
     get_move_promotion,
+    get_move_doublejump,
+    get_move_enpassant,
 };
 use crate::MOVE_MASK;
 use crate::chessboard::defs::{SQUARE_NAME,UNICODE_PIECES};
@@ -27,12 +31,22 @@ impl MoveList {
         self.List.push(mv);
         self.Count += 1;
     }
+    // Pretty prints the moves , this is only for me to not go absolutly insane while trouble
+    // shooting
     pub fn print_all_moves(&self) {
+        println!(
+        "{:<10}{:<10}{:<12}{:<12}{:<12}{:<12}",
+        "move", "piece", "capture", "double", "enpass", "castling"
+        );
         for i in 0..self.Count {
-            println!("{}{}{}",
-                SQUARE_NAME[get_move_src!(self.List[i]) as usize]
-                ,SQUARE_NAME[get_move_dst!(self.List[i]) as usize]
-                ,UNICODE_PIECES[get_move_promotion!(self.List[i]) as usize]);
-        }    
+            println!("{:<10}{:<10}{:<12}{:<12}{:<12}{:<12}",
+                SQUARE_NAME[get_move_src!(self.List[i]) as usize].to_owned()+SQUARE_NAME[get_move_dst!(self.List[i]) as usize]
+                ,UNICODE_PIECES[get_move_promotion!(self.List[i]) as usize]
+                ,get_move_capture!(self.List[i])
+                ,get_move_doublejump!(self.List[i])
+                ,get_move_enpassant!(self.List[i])
+                ,get_move_castle!(self.List[i]));
+        }
+        println!("\n\t\t\tTotal moves : {}",self.Count);
     }
 }

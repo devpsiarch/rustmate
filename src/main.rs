@@ -43,6 +43,7 @@ fn main() {
     generator.Generate_moves();
     let mut ml = MoveList::new();
     ml.add_move(m);
+    ml.add_move(encode_move!(SQUARE::e7 as Move,SQUARE::e8 as Move,Pieces::P as Move,Pieces::Q as Move,0,0,0,0));
     ml.print_all_moves();
     return;
     //for i in 0..64 {
