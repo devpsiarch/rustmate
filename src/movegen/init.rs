@@ -6,8 +6,11 @@
 * declaring thme once and changing them makes a difference from just making and freeing them when
 * out scop*/
 use crate::movegen::MoveGenerator; 
-use crate::chessboard::defs::{COLOR,SQUARE_NAME,SIDES,SLIDER,Pieces,SQUARE,Castle};
+use crate::chessboard::defs::{COLOR,SQUARE_NAME,SIDES,SLIDER,SQUARE,Castle,Pieces};
 use crate::{kill_board,get_bit,pop_bit,set_bit, chessboard::bitboard::{Bitboard,get_lsb,print_bitboard}};
+use crate::{
+    encode_move,
+};
 /*
 * For now the move genearation prints the available moves but later on , either we return a vec of
 * the moves or store them in a attribute of said object , and thats only when we encoded them in
@@ -69,6 +72,8 @@ impl<'a> MoveGenerator<'_> {
         return false;
     }
     // This is a helper that given a chessboard it returns a bitboard of the attacked squares
+    // Wont be used at all in the move generation , mearly a tool to help me check if code works
+    // fine 
     pub fn attacked_squares(&self,color:SIDES) -> Bitboard {
         let mut attacked:Bitboard = 0;
         for i in 0..64 {
@@ -81,7 +86,7 @@ impl<'a> MoveGenerator<'_> {
     // Here are the methodes to generate moves for each piece
     // i dont know yet of we will store the moves in the object or not but for now ill just print
     // them
-    pub fn generate_pawn_moves(&self) {
+    pub fn generate_pawn_moves(&mut self) {
         let mut bitboard:Bitboard = 0;
         let mut atk:Bitboard = 0;       // This will come in handy
         // Change it to SIDE TO MOVE 
@@ -99,17 +104,25 @@ impl<'a> MoveGenerator<'_> {
                         // dst is in the last rank 
                         if src >= SQUARE::a7.try_into().unwrap() && src <=SQUARE::h7.try_into().unwrap() {
                             // Well consider every possible promotions here
+                            //Here am generating the moves and storing them in the moves under self
+                            self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::P as u32,Pieces::Q as u32,0,0,0,0));
+                            self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::P as u32,Pieces::R as u32,0,0,0,0));
+                            self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::P as u32,Pieces::B as u32,0,0,0,0));
+                            self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::P as u32,Pieces::N as u32,0,0,0,0));
+                            // AM only printing the moves to see if genrating the moves is going good
                             println!("Pawn from {} to {} Promotion to queen ",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                             println!("Pawn from {} to {} Promotion to rook ",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                             println!("Pawn from {} to {} Promotion to bishop ",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                             println!("Pawn from {} to {} Promotion to knight ",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         else {
-                            // We check the normal fashion 1 square ahead move 
+                            // We check the normal fashion 1 square ahead move
+                            self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::P as u32,Pieces::NONE,0,0,0,0));
                             println!("Pawn from {} to {} ",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                             // We check if we can double jump here only if we are in the starting rank
                             if src >= SQUARE::a2.try_into().unwrap() && src <= SQUARE::h2.try_into().unwrap() 
                                 && get_bit!(self.board.occupencies[COLOR::BOTH],dst-8) == 0{
+                                self.moves.add_move(encode_move!(src as u32,(dst-8) as u32,Pieces::P as u32,Pieces::NONE,0,1,0,0));
                                 println!("Pawn from {} to {} double jump ",SQUARE_NAME[src as usize],SQUARE_NAME[(dst-8) as usize]);
                             }
                         }
@@ -122,12 +135,17 @@ impl<'a> MoveGenerator<'_> {
                             // Check if the Capture also is a promotion 
                             if killed >= SQUARE::a8.try_into().unwrap() && killed <=SQUARE::h8.try_into().unwrap() {
                                 // Well consider every possible promotions here
+                                self.moves.add_move(encode_move!(src as u32,killed as u32,Pieces::P as u32,Pieces::Q as u32,1,0,0,0));
+                                self.moves.add_move(encode_move!(src as u32,killed as u32,Pieces::P as u32,Pieces::R as u32,1,0,0,0));
+                                self.moves.add_move(encode_move!(src as u32,killed as u32,Pieces::P as u32,Pieces::B as u32,1,0,0,0));
+                                self.moves.add_move(encode_move!(src as u32,killed as u32,Pieces::P as u32,Pieces::N as u32,1,0,0,0));
                                 println!("Pawn Capture from {} to {} Promotion to queen ",SQUARE_NAME[src as usize],SQUARE_NAME[killed as usize]);
                                 println!("Pawn Capture from {} to {} Promotion to rook ",SQUARE_NAME[src as usize],SQUARE_NAME[killed as usize]);
                                 println!("Pawn Capture from {} to {} Promotion to bishop ",SQUARE_NAME[src as usize],SQUARE_NAME[killed as usize]);
                                 println!("Pawn Capture from {} to {} Promotion to knight ",SQUARE_NAME[src as usize],SQUARE_NAME[killed as usize]);
                             }
                             else {
+                                self.moves.add_move(encode_move!(src as u32,killed as u32,Pieces::P as u32,Pieces::NONE,1,0,0,0));
                                 println!("Pawn Captures from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[killed as usize]);
                             }
                             pop_bit!(atk,killed);
@@ -141,6 +159,7 @@ impl<'a> MoveGenerator<'_> {
                         if atk != 0 {
                             dst = get_lsb(atk) as i8;
                             println!("Pawn enpassant from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::P as u32,Pieces::NONE,0,0,1,0));
                         }
                     } 
                     pop_bit!(bitboard,src);
@@ -159,6 +178,10 @@ impl<'a> MoveGenerator<'_> {
                         // dst is in the last rank 
                         if src >= SQUARE::a2.try_into().unwrap() && src <=SQUARE::h2.try_into().unwrap() {
                             // Well consider every possible promotions here
+                            self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::p as u32,Pieces::q as u32,0,0,0,0));
+                            self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::p as u32,Pieces::r as u32,0,0,0,0));
+                            self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::p as u32,Pieces::b as u32,0,0,0,0));
+                            self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::p as u32,Pieces::n as u32,0,0,0,0));
                             println!("pawn from {} to {} Promotion to queen ",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                             println!("pawn from {} to {} Promotion to rook ",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                             println!("pawn from {} to {} Promotion to bishop ",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
@@ -166,10 +189,12 @@ impl<'a> MoveGenerator<'_> {
                         }
                         else {
                             // We check the normal fashion 1 square ahead move 
+                            self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::p as u32,Pieces::NONE,0,0,0,0));
                             println!("pawn from {} to {} ",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                             // We check if we can double jump here only if we are in the starting rank
                             if src >= SQUARE::a7.try_into().unwrap() && src <= SQUARE::h7.try_into().unwrap() 
                                 && get_bit!(self.board.occupencies[COLOR::BOTH],dst+8) == 0{
+                                self.moves.add_move(encode_move!(src as u32,(dst+8) as u32,Pieces::p as u32,Pieces::NONE,0,1,0,0));
                                 println!("pawn from {} to {} double jump ",SQUARE_NAME[src as usize],SQUARE_NAME[(dst+8) as usize]);
                             }
                         }
@@ -182,12 +207,18 @@ impl<'a> MoveGenerator<'_> {
                             // Check if the Capture also is a promotion 
                             if killed >= SQUARE::a1.try_into().unwrap() && killed <=SQUARE::h1.try_into().unwrap() {
                                 // Well consider every possible promotions here
+                                self.moves.add_move(encode_move!(src as u32,killed as u32,Pieces::p as u32,Pieces::q as u32,1,0,0,0));
+                                self.moves.add_move(encode_move!(src as u32,killed as u32,Pieces::p as u32,Pieces::r as u32,1,0,0,0));
+                                self.moves.add_move(encode_move!(src as u32,killed as u32,Pieces::p as u32,Pieces::b as u32,1,0,0,0));
+                                self.moves.add_move(encode_move!(src as u32,killed as u32,Pieces::p as u32,Pieces::n as u32,1,0,0,0));
                                 println!("Pawn Capture from {} to {} Promotion to queen ",SQUARE_NAME[src as usize],SQUARE_NAME[killed as usize]);
                                 println!("Pawn Capture from {} to {} Promotion to rook ",SQUARE_NAME[src as usize],SQUARE_NAME[killed as usize]);
                                 println!("Pawn Capture from {} to {} Promotion to bishop ",SQUARE_NAME[src as usize],SQUARE_NAME[killed as usize]);
                                 println!("Pawn Capture from {} to {} Promotion to knight ",SQUARE_NAME[src as usize],SQUARE_NAME[killed as usize]);
                             }
                             else {
+                                // Check the normal capture
+                                self.moves.add_move(encode_move!(src as u32,killed as u32,Pieces::p as u32,Pieces::NONE,1,0,0,0));
                                 println!("Pawn Captures from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[killed as usize]);
                             }
                             pop_bit!(atk,killed);
@@ -200,6 +231,7 @@ impl<'a> MoveGenerator<'_> {
                         // Check if its available
                         if atk != 0 {
                             dst = get_lsb(atk) as i8;
+                            self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::p as u32,Pieces::NONE,1,0,1,0));
                             println!("Pawn enpassant from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                     } 

@@ -13,7 +13,7 @@ use crate::{
     get_move_enpassant,
 };
 use crate::MOVE_MASK;
-use crate::chessboard::defs::{SQUARE_NAME,UNICODE_PIECES};
+use crate::chessboard::defs::{SQUARE_NAME,UNICODE_PIECES,Pieces};
 const MAX_LEGAL_MOVES:usize = 256;  
 
 pub struct MoveList {
@@ -39,9 +39,10 @@ impl MoveList {
         "move", "piece", "capture", "double", "enpass", "castling"
         );
         for i in 0..self.Count {
+            let promoted = if get_move_promotion!(self.List[i]) == Pieces::NONE {"NONE"} else {UNICODE_PIECES[get_move_promotion!(self.List[i]) as usize]};
             println!("{:<10}{:<10}{:<12}{:<12}{:<12}{:<12}",
                 SQUARE_NAME[get_move_src!(self.List[i]) as usize].to_owned()+SQUARE_NAME[get_move_dst!(self.List[i]) as usize]
-                ,UNICODE_PIECES[get_move_promotion!(self.List[i]) as usize]
+                ,promoted
                 ,get_move_capture!(self.List[i])
                 ,get_move_doublejump!(self.List[i])
                 ,get_move_enpassant!(self.List[i])
