@@ -38,7 +38,7 @@ impl Chessboard {
     }
     // If init function of init_board is still just fen parsing then it needs to go 
     pub fn init_board(&mut self) {
-        match self.parse_fen("rnbqkbnr/pppp1ppp/8/4p3/4Pp2/8/PPPP2PP/RNBQKBNR b KQkq e3 0 2") {
+        match self.parse_fen(TRICKY_POSITION) {
             Ok(()) => {}
             Err(error_code) => panic!("failed to parse fen from init_board : code {error_code}")
         }

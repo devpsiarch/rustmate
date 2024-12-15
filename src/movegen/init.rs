@@ -243,7 +243,7 @@ impl<'a> MoveGenerator<'_> {
 
     }
     // This methodes as the name suggest it generates the castle moves
-    pub fn generate_castle_moves(&self) {
+    pub fn generate_castle_moves(&mut self) {
         // Here out only job is to generate castle moves GIVEN the caslte rights , 
         // In other words , we only check IF WE CAN CASTLE , and no if WE HAVE CASLTE RIGHTS
         // Castle Rights only change if one of the rooks or the king moves from a specific location
@@ -260,6 +260,7 @@ impl<'a> MoveGenerator<'_> {
                 && self.square_attacked(SIDES::BLACK,SQUARE::f1) == false              
                 && self.square_attacked(SIDES::BLACK,SQUARE::g1) == false //where kings lands 
                 && self.square_attacked(SIDES::BLACK,SQUARE::e1) == false{// Check king square
+                    self.moves.add_move(encode_move!(SQUARE::e1 as u32,SQUARE::g1 as u32,Pieces::K as u32,Pieces::NONE,0,0,0,1));
                     println!("white King caslte from {} to {}",SQUARE_NAME[SQUARE::e1 as usize],SQUARE_NAME[SQUARE::g1 as usize]);
                 }
 
@@ -270,6 +271,7 @@ impl<'a> MoveGenerator<'_> {
                 && self.square_attacked(SIDES::BLACK,SQUARE::d1) == false 
                 && self.square_attacked(SIDES::BLACK,SQUARE::c1) == false  //King landing
                 && self.square_attacked(SIDES::BLACK,SQUARE::e1) == false {// for king square
+                    self.moves.add_move(encode_move!(SQUARE::e1 as u32,SQUARE::c1 as u32,Pieces::K as u32,Pieces::NONE,0,0,0,1));
                     println!("white queen caslte from {} to {}",SQUARE_NAME[SQUARE::e1 as usize],SQUARE_NAME[SQUARE::c1 as usize]);
                 }
             }
@@ -280,6 +282,7 @@ impl<'a> MoveGenerator<'_> {
                 && self.square_attacked(SIDES::WHITE,SQUARE::f8) == false
                 && self.square_attacked(SIDES::WHITE,SQUARE::g8) == false //king landing here
                 && self.square_attacked(SIDES::WHITE,SQUARE::e8) == false{// Check kings square
+                    self.moves.add_move(encode_move!(SQUARE::e8 as u32,SQUARE::g8 as u32,Pieces::k as u32,Pieces::NONE,0,0,0,1));
                     println!("black king caslte from {} to {}",SQUARE_NAME[SQUARE::e8 as usize],SQUARE_NAME[SQUARE::g8 as usize]);
                 }
 
@@ -290,6 +293,7 @@ impl<'a> MoveGenerator<'_> {
                 && self.square_attacked(SIDES::WHITE,SQUARE::d8) == false 
                 && self.square_attacked(SIDES::WHITE,SQUARE::c8) == false //king landing
                 && self.square_attacked(SIDES::WHITE,SQUARE::e8) == false{// king square
+                    self.moves.add_move(encode_move!(SQUARE::e8 as u32,SQUARE::c8 as u32,Pieces::k as u32,Pieces::NONE,0,0,0,1));
                     println!("black queen caslte from {} to {}",SQUARE_NAME[SQUARE::e8 as usize],SQUARE_NAME[SQUARE::c8 as usize]);
                 }
             }

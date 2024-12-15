@@ -25,8 +25,8 @@ impl<'a> MoveGenerator<'a> {
     }
     // We wont change Self here no matter what , this only and only gets us the moves
     pub fn Generate_moves(&mut self) {
-        self.generate_pawn_moves();
-        //self.generate_castle_moves();
+        //self.generate_pawn_moves();
+        self.generate_castle_moves();
         //self.generate_knight_moves();
         //self.generate_king_moves();
         //self.generate_bishop_moves();
