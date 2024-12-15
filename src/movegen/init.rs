@@ -300,7 +300,7 @@ impl<'a> MoveGenerator<'_> {
         }
     }
     // Here we generate the moves for King piece
-    pub fn generate_king_moves(&self) {
+    pub fn generate_king_moves(&mut self) {
         // Same buisness , get attack table and deal with each landing square 
         // BUT !!! we have to make sure that the square that we land on doesnt make us in check 
         // SO THEY LANDINGS MUST BE NOT ATTACKED
@@ -319,10 +319,12 @@ impl<'a> MoveGenerator<'_> {
                     if self.square_attacked(SIDES::BLACK,dst) == false {
                         // If the move is a Capture move
                         if get_bit!(self.board.occupencies[COLOR::b],dst) == 1 {
+                            self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::K as u32,Pieces::NONE,1,0,0,0));
                             println!("White King Captures from {} to {}",SQUARE_NAME[src],SQUARE_NAME[dst as usize]);
                         }
                         // Else it is just a normal move
                         else {
+                            self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::K as u32,Pieces::NONE,0,0,0,0));
                             println!("White King moves from {} to {}",SQUARE_NAME[src],SQUARE_NAME[dst as usize]);
                         }
                     }
@@ -343,10 +345,12 @@ impl<'a> MoveGenerator<'_> {
                     if self.square_attacked(SIDES::WHITE,dst) == false {
                         // If the move is a Capture move
                         if get_bit!(self.board.occupencies[COLOR::w],dst) == 1 {
+                            self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::k as u32,Pieces::NONE,1,0,0,0));
                             println!("Black King Captures from {} to {}",SQUARE_NAME[src],SQUARE_NAME[dst as usize]);
                         }
                         // Else it is just a normal move
                         else {
+                            self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::k as u32,Pieces::NONE,0,0,0,0));
                             println!("Black King moves from {} to {}",SQUARE_NAME[src],SQUARE_NAME[dst as usize]);
                         }
                     }
@@ -356,7 +360,7 @@ impl<'a> MoveGenerator<'_> {
         }
     }
     // Getting the attacks available for knight depending on who is up for the next to move
-    pub fn generate_knight_moves(&self) {
+    pub fn generate_knight_moves(&mut self) {
         // We get the attack maps and make sure if we land in a friendly piece , then we skip that
         // move and go for another
         let mut bitboard:Bitboard = 0 ;
@@ -376,10 +380,12 @@ impl<'a> MoveGenerator<'_> {
                         // Here am specifing if am CAPTURING a piece or just chilling
                         // The case for capturing
                         if get_bit!(self.board.occupencies[COLOR::b],dst) == 1 {
+                            self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::N as u32,Pieces::NONE,1,0,0,0));
                             println!("White knight Capture from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         // Case for a chill knight ... 
                         else{
+                            self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::N as u32,Pieces::NONE,0,0,0,0));
                             println!("White knight from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         pop_bit!(atk,dst);
@@ -400,10 +406,12 @@ impl<'a> MoveGenerator<'_> {
                         // Here am specifing if am CAPTURING a piece or just chilling
                         // The case for capturing
                         if get_bit!(self.board.occupencies[COLOR::w],dst) == 1 {
+                            self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::n as u32,Pieces::NONE,1,0,0,0));
                             println!("Black knight Capture from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         // Case for a chill knight ... 
                         else{
+                            self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::n as u32,Pieces::NONE,0,0,0,0));
                             println!("Black knight from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         pop_bit!(atk,dst);
@@ -415,7 +423,7 @@ impl<'a> MoveGenerator<'_> {
     }
     // Gets possible attacks from bishops
     // This methode will bassicly be the same for each slider piece
-    pub fn generate_bishop_moves(&self) {
+    pub fn generate_bishop_moves(&mut self) {
         let mut bitboard:Bitboard = 0;
         let mut atk:Bitboard = 0;
         match self.board.side_to_move {
@@ -431,10 +439,12 @@ impl<'a> MoveGenerator<'_> {
                         dst = get_lsb(atk);
                         // Checking if we are killing an enemy  
                         if get_bit!(self.board.occupencies[COLOR::b],dst) == 1 {
+                            self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::B as u32,Pieces::NONE,1,0,0,0));
                             println!("white Bishop Captures from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         // else its just chilling 
                         else {
+                            self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::B as u32,Pieces::NONE,0,0,0,0));
                             println!("white Bishop moves from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         pop_bit!(atk,dst);
@@ -454,10 +464,12 @@ impl<'a> MoveGenerator<'_> {
                         // "DO NOT TRUST SHAPERD !!" 
                         // Checking if we are killing an enemy  
                         if get_bit!(self.board.occupencies[COLOR::w],dst) == 1 {
+                            self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::b as u32,Pieces::NONE,1,0,0,0));
                             println!("black Bishop Captures from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         // else its just chilling 
                         else {
+                            self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::b as u32,Pieces::NONE,0,0,0,0));
                             println!("black Bishop moves from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         pop_bit!(atk,dst);
@@ -468,7 +480,7 @@ impl<'a> MoveGenerator<'_> {
         }
     }
     // This methode will bassicly be the same for each slider piece
-    pub fn generate_rook_moves(&self) {
+    pub fn generate_rook_moves(&mut self) {
         let mut bitboard:Bitboard = 0;
         let mut atk:Bitboard = 0;
         match self.board.side_to_move {
@@ -484,10 +496,12 @@ impl<'a> MoveGenerator<'_> {
                         dst = get_lsb(atk);
                         // Checking if we are killing an enemy  
                         if get_bit!(self.board.occupencies[COLOR::b],dst) == 1 {
+                            self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::R as u32,Pieces::NONE,1,0,0,0));
                             println!("white ROOK Captures from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         // else its just chilling 
                         else {
+                            self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::R as u32,Pieces::NONE,0,0,0,0));
                             println!("white Rook moves from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         pop_bit!(atk,dst);
@@ -507,10 +521,12 @@ impl<'a> MoveGenerator<'_> {
                         // "DO NOT TRUST SHAPERD !!" 
                         // Checking if we are killing an enemy  
                         if get_bit!(self.board.occupencies[COLOR::w],dst) == 1 {
+                            self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::r as u32,Pieces::NONE,1,0,0,0));
                             println!("black Rook Captures from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         // else its just chilling 
                         else {
+                            self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::r as u32,Pieces::NONE,0,0,0,0));
                             println!("black Rook moves from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         pop_bit!(atk,dst);
@@ -521,7 +537,7 @@ impl<'a> MoveGenerator<'_> {
         }
     }
     // This methode will bassicly be the same for each slider piece
-    pub fn generate_queen_moves(&self) {
+    pub fn generate_queen_moves(&mut self) {
         let mut bitboard:Bitboard = 0;
         let mut atk:Bitboard = 0;
         match self.board.side_to_move {
@@ -537,10 +553,12 @@ impl<'a> MoveGenerator<'_> {
                         dst = get_lsb(atk);
                         // Checking if we are killing an enemy  
                         if get_bit!(self.board.occupencies[COLOR::b],dst) == 1 {
+                            self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::Q as u32,Pieces::NONE,1,0,0,0));
                             println!("white Queen Captures from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         // else its just chilling 
                         else {
+                            self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::Q as u32,Pieces::NONE,0,0,0,0));
                             println!("white Queen moves from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         pop_bit!(atk,dst);
@@ -560,10 +578,12 @@ impl<'a> MoveGenerator<'_> {
                         // "DO NOT TRUST SHAPERD !!" 
                         // Checking if we are killing an enemy  
                         if get_bit!(self.board.occupencies[COLOR::w],dst) == 1 {
+                            self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::q as u32,Pieces::NONE,1,0,0,0));
                             println!("black Queen Captures from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         // else its just chilling 
                         else {
+                            self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::q as u32,Pieces::NONE,0,0,0,0));
                             println!("black Queen moves from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         pop_bit!(atk,dst);
