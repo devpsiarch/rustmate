@@ -4,10 +4,17 @@
 * NOTE: IDK if declaring a small varible to store src and dst for each eteration is a good idea , i
 * dont know if that will cost more time in the future , so i gotta do tests and check if making
 * declaring thme once and changing them makes a difference from just making and freeing them when
-* out scop*/
+* out scop
+*/
+
+/*
+* Also , please remove the printing of moves alr ? it takes time and its ugly , maybe comment them
+* out because you are such a dummy ull prolly forget what the code do if you ran into trouble , idk
+* just stop prining
+* */
 use crate::movegen::MoveGenerator; 
 use crate::chessboard::defs::{COLOR,SQUARE_NAME,SIDES,SLIDER,SQUARE,Castle,Pieces};
-use crate::{kill_board,get_bit,pop_bit,set_bit, chessboard::bitboard::{Bitboard,get_lsb,print_bitboard}};
+use crate::{get_bit,pop_bit,set_bit, chessboard::bitboard::{Bitboard,get_lsb}};
 use crate::{
     encode_move,
 };
@@ -74,6 +81,7 @@ impl<'a> MoveGenerator<'_> {
     // This is a helper that given a chessboard it returns a bitboard of the attacked squares
     // Wont be used at all in the move generation , mearly a tool to help me check if code works
     // fine 
+    #[allow(dead_code)]
     pub fn attacked_squares(&self,color:SIDES) -> Bitboard {
         let mut attacked:Bitboard = 0;
         for i in 0..64 {
@@ -87,8 +95,8 @@ impl<'a> MoveGenerator<'_> {
     // i dont know yet of we will store the moves in the object or not but for now ill just print
     // them
     pub fn generate_pawn_moves(&mut self) {
-        let mut bitboard:Bitboard = 0;
-        let mut atk:Bitboard = 0;       // This will come in handy
+        let mut bitboard:Bitboard;
+        let mut atk:Bitboard;       // This will come in handy
         // Change it to SIDE TO MOVE 
         match self.board.side_to_move {
             SIDES::WHITE => {
@@ -304,7 +312,7 @@ impl<'a> MoveGenerator<'_> {
         // Same buisness , get attack table and deal with each landing square 
         // BUT !!! we have to make sure that the square that we land on doesnt make us in check 
         // SO THEY LANDINGS MUST BE NOT ATTACKED
-        let mut atk:Bitboard = 0;
+        let mut atk:Bitboard;
         match self.board.side_to_move {
             SIDES::WHITE => {
                 // Here we assume that there exists only one king in the whole board which is true 
@@ -363,8 +371,8 @@ impl<'a> MoveGenerator<'_> {
     pub fn generate_knight_moves(&mut self) {
         // We get the attack maps and make sure if we land in a friendly piece , then we skip that
         // move and go for another
-        let mut bitboard:Bitboard = 0 ;
-        let mut atk:Bitboard = 0;
+        let mut bitboard:Bitboard;
+        let mut atk:Bitboard;
         match self.board.side_to_move {
             SIDES::WHITE => {
                 bitboard = self.board.bitboards[Pieces::N];
@@ -424,8 +432,8 @@ impl<'a> MoveGenerator<'_> {
     // Gets possible attacks from bishops
     // This methode will bassicly be the same for each slider piece
     pub fn generate_bishop_moves(&mut self) {
-        let mut bitboard:Bitboard = 0;
-        let mut atk:Bitboard = 0;
+        let mut bitboard:Bitboard;
+        let mut atk:Bitboard;
         match self.board.side_to_move {
             SIDES::WHITE => {
                 bitboard = self.board.bitboards[Pieces::B];
@@ -481,8 +489,8 @@ impl<'a> MoveGenerator<'_> {
     }
     // This methode will bassicly be the same for each slider piece
     pub fn generate_rook_moves(&mut self) {
-        let mut bitboard:Bitboard = 0;
-        let mut atk:Bitboard = 0;
+        let mut bitboard:Bitboard;
+        let mut atk:Bitboard;
         match self.board.side_to_move {
             SIDES::WHITE => {
                 bitboard = self.board.bitboards[Pieces::R];
@@ -538,8 +546,8 @@ impl<'a> MoveGenerator<'_> {
     }
     // This methode will bassicly be the same for each slider piece
     pub fn generate_queen_moves(&mut self) {
-        let mut bitboard:Bitboard = 0;
-        let mut atk:Bitboard = 0;
+        let mut bitboard:Bitboard;
+        let mut atk:Bitboard;
         match self.board.side_to_move {
             SIDES::WHITE => {
                 bitboard = self.board.bitboards[Pieces::Q];

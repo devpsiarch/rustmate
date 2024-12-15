@@ -1,5 +1,5 @@
 pub mod defs;
-use defs::{Pieces,COLOR,SQUARE_NAME,SIDES,SQUARE,STARTING_POSITION,CMK_POSITION,TRICKY_POSITION,KILLER_POSITION};
+use defs::{Pieces,COLOR,SQUARE_NAME,SIDES,SQUARE,FenPositions};
 pub mod bitboard;
 use bitboard::{Bitboard};
 use crate::set_bit;
@@ -38,13 +38,14 @@ impl Chessboard {
     }
     // If init function of init_board is still just fen parsing then it needs to go 
     pub fn init_board(&mut self) {
-        match self.parse_fen(TRICKY_POSITION) {
+        match self.parse_fen(FenPositions::TRICKY_POSITION) {
             Ok(()) => {}
             Err(error_code) => panic!("failed to parse fen from init_board : code {error_code}")
         }
     }
     // This just spawns a pices for a side as long as there is not pre existing piece there with NO REGARD to any chess rule 
     // AGAIN THIS DOES NOT PRODUCE MOVES , THIS IS USED FOR TESTING
+    #[allow(dead_code)]
     pub fn spawn_piece(&mut self,piece:usize,square:u8) {
         if get_bit!(self.occupencies[COLOR::BOTH],square) != 1 {
             set_bit!(self.bitboards[piece],square);
@@ -61,6 +62,7 @@ impl Chessboard {
         }
     }
     // This methode is the complement for the methode above and used only for testing 
+    #[allow(dead_code)]
     pub fn pop_square(&mut self,square:u8) {
         // Erasses a piece for the Chessboard object disregarding any rules of implications that
         // may cause , THIS IS NOT A PART OF MAKING A MOVE 

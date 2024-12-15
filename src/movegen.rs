@@ -3,8 +3,6 @@ pub mod movecode;
 pub mod movelist;
 use crate::Chessboard;
 use crate::attacks::AttackMasks;
-use crate::bitboard::{Bitboard};
-use crate::defs::Pieces;
 use crate::{MoveList};
 // Am not sure about the below code , but F it ill do this if i get headache ill fix the damn thing 
 // Petition : maybe ill include a Vec in the MoveGenerator to store the moves
@@ -24,7 +22,7 @@ impl<'a> MoveGenerator<'a> {
         } 
     }
     // We wont change Self here no matter what , this only and only gets us the moves
-    pub fn Generate_moves(&mut self) {
+    pub fn generate_moves(&mut self) {
         self.generate_pawn_moves();
         self.generate_castle_moves();
         self.generate_king_moves();

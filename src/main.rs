@@ -3,15 +3,14 @@ use chessboard::{Chessboard};
 
 mod movegen;
 use crate::movegen::MoveGenerator;
-use crate::movegen::movecode::{Move,MOVE_MASK,show_move};
+use crate::movegen::movecode::{Move,MoveMask};
 use crate::movegen::movelist::{MoveList};
 //i am using these here just for testing future me , take them down when everything is set
 use crate::chessboard::bitboard;
 use crate::chessboard::attacks;
 use crate::chessboard::defs;
 use crate::chessboard::magic;
-use crate::bitboard::{print_bitboard,Bitboard};
-use crate::defs::{UNICODE_PIECES,COLOR,SIDES,SLIDER,Pieces,SQUARE,SQUARE_NAME};
+use crate::defs::{SIDES,Pieces,SQUARE};
 /*
 * NOTES ::: future me 
 * fix the loading / looking up the slider pieces attack tables for the rook cuz they be ass
@@ -25,12 +24,12 @@ use crate::defs::{UNICODE_PIECES,COLOR,SIDES,SLIDER,Pieces,SQUARE,SQUARE_NAME};
 
 //i will be running tests here untile everything is set and done
 fn main() {
-    let m:Move = encode_move!(SQUARE::e4 as Move,SQUARE::e5 as Move,Pieces::P as Move,Pieces::Q as Move,1,0,0,1); 
+    let _m:Move = encode_move!(SQUARE::e4 as Move,SQUARE::e5 as Move,Pieces::P as Move,Pieces::Q as Move,1,0,0,1); 
     let mut chess = Chessboard::new();
     chess.init_board();
     let mut test = attacks::AttackMasks::new();
     test.load_attacks_maps();
-    //chess.spawn_piece(Pieces::P,SQUARE::b7);
+    //chess.spawn_piece(Pieces::p,SQUARE::b2);
     //chess.spawn_piece(Pieces::p,SQUARE::d8);
     //chess.pop_square(SQUARE::e2);
     chess.print_chessboard();   
@@ -38,15 +37,15 @@ fn main() {
     if generator.square_attacked(SIDES::BLACK,defs::SQUARE::f3) {
         println!("Attacked and working");
     }
-    let mut atk = generator.attacked_squares(SIDES::BLACK);
+    //let mut atk = generator.attacked_squares(SIDES::BLACK);
     //print_bitboard(&chess.occupencies[COLOR::BOTH]);
-    generator.Generate_moves();
+    generator.generate_moves();
     //let mut ml = MoveList::new();
     //ml.add_move(m);
     //ml.add_move(encode_move!(SQUARE::e7 as Move,SQUARE::e8 as Move,Pieces::P as Move,Pieces::Q as Move,0,0,0,0));
     generator.moves.print_all_moves();
     return;
-    //for i in 0..64 {
+    /*for i in 0..64 {
     //    bitboard::print_bitboard(&test.knight_attack_masks[i]);
     //}
     let mut occ: Bitboard = 0;
@@ -73,5 +72,5 @@ fn main() {
     //let ksb = bitboard::get_lsb(test);
     //println!("{}",c);
     //println!("{}",ksb);
-
+    */
 }

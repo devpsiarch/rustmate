@@ -18,13 +18,11 @@
     0100 0000 0000 0000 0000 0000    enpassant flag      0x400000
     1000 0000 0000 0000 0000 0000    castling flag       0x800000
 */
-use crate::chessboard::defs::{SQUARE_NAME,UNICODE_PIECES,Pieces};
+use crate::chessboard::defs::{SQUARE_NAME,UNICODE_PIECES};
 pub type Move = u32;             // sure 4 bits unused is better then nothing
-type Move_decoder = fn(m:Move) -> u8;
-const ENCODING_SIZE: usize = 8;
 
-pub struct MOVE_MASK;
-impl MOVE_MASK {
+pub struct MoveMask;
+impl MoveMask {
     pub const SRC:Move                = 0x3f ;
     pub const DST:Move                = 0xfc0;
     pub const PIECE:Move              = 0xf000;
@@ -52,25 +50,25 @@ macro_rules! encode_move {
 #[macro_export]
 macro_rules! get_move_src {
     ($mv:expr) => (
-        ($mv & MOVE_MASK::SRC)
+        ($mv & MoveMask::SRC)
     )
 }
 #[macro_export]
 macro_rules! get_move_dst {
     ($mv:expr) => (
-        ($mv & MOVE_MASK::DST) >> 6
+        ($mv & MoveMask::DST) >> 6
     )
 }
 #[macro_export]
 macro_rules! get_move_piece {
     ($mv:expr) => (
-        ($mv & MOVE_MASK::PIECE) >> 12
+        ($mv & MoveMask::PIECE) >> 12
     )
 }
 #[macro_export]
 macro_rules! get_move_promotion {
     ($mv:expr) => (
-        ($mv & MOVE_MASK::PROMOTION) >> 16
+        ($mv & MoveMask::PROMOTION) >> 16
     )
 }
 /*
@@ -82,29 +80,30 @@ macro_rules! get_move_promotion {
 #[macro_export]
 macro_rules! get_move_capture {
     ($mv:expr) => (
-        $mv & MOVE_MASK::CAPTURE_FLAG
+        $mv & MoveMask::CAPTURE_FLAG
     )
 }
 #[macro_export]
 macro_rules! get_move_doublejump {
     ($mv:expr) => (
-        $mv & MOVE_MASK::DOUBLE_JUMP_FLAG
+        $mv & MoveMask::DOUBLE_JUMP_FLAG
     )
 }
 #[macro_export]
 macro_rules! get_move_enpassant {
     ($mv:expr) => (
-        $mv & MOVE_MASK::EN_PASSANT_FLAG
+        $mv & MoveMask::EN_PASSANT_FLAG
     )
 }
 #[macro_export]
 macro_rules! get_move_castle {
     ($mv:expr) => (
-        $mv & MOVE_MASK::CASTLE_FLAG
+        $mv & MoveMask::CASTLE_FLAG
     )
 }
 // Tread this as the print bitboard function , no methode no nohing just a helper that you will
-// only use once or twice to test then complety forget
+// only use once or twice to test then complety forget about it 
+#[allow(dead_code)]
 pub fn show_move(mv:Move) {
     let src = get_move_src!(mv);
     let dst = get_move_dst!(mv);

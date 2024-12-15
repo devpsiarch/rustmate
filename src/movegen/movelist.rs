@@ -12,24 +12,24 @@ use crate::{
     get_move_doublejump,
     get_move_enpassant,
 };
-use crate::MOVE_MASK;
+use crate::MoveMask;
 use crate::chessboard::defs::{SQUARE_NAME,UNICODE_PIECES,Pieces};
 const MAX_LEGAL_MOVES:usize = 256;  
 
 pub struct MoveList {
-    List: Vec<Move>,
-    Count:usize,
+    list: Vec<Move>,
+    count:usize,
 }
 impl MoveList {
     pub fn new() -> Self {
         Self {
-            List:Vec::with_capacity(MAX_LEGAL_MOVES),
-            Count:0,
+            list:Vec::with_capacity(MAX_LEGAL_MOVES),
+            count:0,
         }
     }
     pub fn add_move(&mut self,mv:Move) {
-        self.List.push(mv);
-        self.Count += 1;
+        self.list.push(mv);
+        self.count += 1;
     }
     // Pretty prints the moves , this is only for me to not go absolutly insane while trouble
     // shooting
@@ -38,16 +38,16 @@ impl MoveList {
         "{:<10}{:<10}{:<12}{:<12}{:<12}{:<12}",
         "move", "piece", "capture", "double", "enpass", "castling"
         );
-        for i in 0..self.Count {
-            let promoted = if get_move_promotion!(self.List[i]) == Pieces::NONE {"NONE"} else {UNICODE_PIECES[get_move_promotion!(self.List[i]) as usize]};
+        for i in 0..self.count {
+            let promoted = if get_move_promotion!(self.list[i]) == Pieces::NONE {"NONE"} else {UNICODE_PIECES[get_move_promotion!(self.list[i]) as usize]};
             println!("{:<10}{:<10}{:<12}{:<12}{:<12}{:<12}",
-                SQUARE_NAME[get_move_src!(self.List[i]) as usize].to_owned()+SQUARE_NAME[get_move_dst!(self.List[i]) as usize]
+                SQUARE_NAME[get_move_src!(self.list[i]) as usize].to_owned()+SQUARE_NAME[get_move_dst!(self.list[i]) as usize]
                 ,promoted
-                ,get_move_capture!(self.List[i])
-                ,get_move_doublejump!(self.List[i])
-                ,get_move_enpassant!(self.List[i])
-                ,get_move_castle!(self.List[i]));
+                ,get_move_capture!(self.list[i])
+                ,get_move_doublejump!(self.list[i])
+                ,get_move_enpassant!(self.list[i])
+                ,get_move_castle!(self.list[i]));
         }
-        println!("\n\t\t\tTotal moves : {}",self.Count);
+        println!("\n\t\t\tTotal moves : {}",self.count);
     }
 }
