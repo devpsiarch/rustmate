@@ -8,6 +8,7 @@ use crate::{
     get_move_src,
     get_move_capture,
     get_move_castle,
+    get_move_piece,
     get_move_promotion,
     get_move_doublejump,
     get_move_enpassant,
@@ -35,13 +36,14 @@ impl MoveList {
     // shooting
     pub fn print_all_moves(&self) {
         println!(
-        "{:<10}{:<10}{:<12}{:<12}{:<12}{:<12}",
-        "move", "piece", "capture", "double", "enpass", "castling"
+        "{:<10}{:<10}{:<12}{:<12}{:<12}{:<12}{:<12}",
+        "move", "piece", "promoted", "capture", "double", "enpass", "castling"
         );
         for i in 0..self.count {
             let promoted = if get_move_promotion!(self.list[i]) == Pieces::NONE {"NONE"} else {UNICODE_PIECES[get_move_promotion!(self.list[i]) as usize]};
-            println!("{:<10}{:<10}{:<12}{:<12}{:<12}{:<12}",
+            println!("{:<10}{:<10}{:<12}{:<12}{:<12}{:<12}{:<12}",
                 SQUARE_NAME[get_move_src!(self.list[i]) as usize].to_owned()+SQUARE_NAME[get_move_dst!(self.list[i]) as usize]
+                ,UNICODE_PIECES[get_move_piece!(self.list[i]) as usize]
                 ,promoted
                 ,get_move_capture!(self.list[i])
                 ,get_move_doublejump!(self.list[i])

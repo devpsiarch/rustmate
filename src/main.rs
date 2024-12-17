@@ -11,15 +11,11 @@ use crate::chessboard::attacks;
 use crate::chessboard::defs;
 use crate::chessboard::magic;
 use crate::defs::{SIDES,Pieces,SQUARE};
-/*
-* NOTES ::: future me 
-* fix the loading / looking up the slider pieces attack tables for the rook cuz they be ass
-* we have these options to fix the rook and bishop indecies {
-* --> find magic numbers availbale online : Crafty and chess Wiki has some zip files
-* --> using hashing : rust provides that and it wont be hard to use
-*   }
-* */
 
+/*
+* Here use the crates that the main function does not need but you do for 
+* debugging alr ? i dont wanna deal with a billion warnings
+*/
 
 
 //i will be running tests here untile everything is set and done
@@ -27,12 +23,17 @@ fn main() {
     let _m:Move = encode_move!(SQUARE::e4 as Move,SQUARE::e5 as Move,Pieces::P as Move,Pieces::Q as Move,1,0,0,1); 
     let mut chess = Chessboard::new();
     chess.init_board();
+    let copy = chess.clone();       // Copies are never mutables am pretty sure
+    chess.spawn_piece(Pieces::P,SQUARE::b7);
+    chess.spawn_piece(Pieces::Q,SQUARE::d6);
+    chess.print_chessboard();
+    chess.restore_board(copy);
+    chess.print_chessboard();
     let mut test = attacks::AttackMasks::new();
     test.load_attacks_maps();
     //chess.spawn_piece(Pieces::p,SQUARE::b2);
     //chess.spawn_piece(Pieces::p,SQUARE::d8);
     //chess.pop_square(SQUARE::e2);
-    chess.print_chessboard();   
     let mut generator = MoveGenerator::new(&chess,&test);
     if generator.square_attacked(SIDES::BLACK,defs::SQUARE::f3) {
         println!("Attacked and working");

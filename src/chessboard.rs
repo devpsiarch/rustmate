@@ -84,5 +84,17 @@ impl Chessboard {
         self.en_passant = 64;
         self.half_move_clock = 0;
         self.move_count = 1;
-    } 
+    }
+    // This function gets back a chessboard after changes has been done to it , it is mainly used
+    // in making moves -> pseudo legal moves -> detection if king is in check
+    // It also drops the copy passed it it ... that is if i understood the borrow checker
+    pub fn restore_board(&mut self,copy:Chessboard){
+        self.bitboards = copy.bitboards;
+        self.side_to_move = copy.side_to_move;
+        self.occupencies = copy.occupencies;
+        self.castling_rights = copy.castling_rights;
+        self.en_passant = copy.en_passant;
+        self.half_move_clock = copy.half_move_clock;
+        self.move_count = copy.move_count;
+    }
 }
