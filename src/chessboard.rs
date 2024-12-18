@@ -1,5 +1,5 @@
 pub mod defs;
-use defs::{Pieces,COLOR,SQUARE_NAME,SIDES,SQUARE,FenPositions};
+use defs::{Pieces,COLOR,SQUARE_NAME,SIDES,SQUARE,FenPositions,UNICODE_PIECES};
 pub mod bitboard;
 use bitboard::{Bitboard};
 use crate::set_bit;
@@ -58,7 +58,7 @@ impl Chessboard {
                 _ => println!("No such piece , go play something else lil bro"),
             }
         }else{
-            println!("Spawning {} side white on {} is not permitable",piece,SQUARE_NAME[square as usize]);
+            println!(">>>>Spawning {} on {} is not permitable<<<<",UNICODE_PIECES[piece as usize],SQUARE_NAME[square as usize]);
         }
     }
     // This methode is the complement for the methode above and used only for testing 
@@ -67,12 +67,12 @@ impl Chessboard {
         // Erasses a piece for the Chessboard object disregarding any rules of implications that
         // may cause , THIS IS NOT A PART OF MAKING A MOVE 
         for i in Pieces::P..=Pieces::k {
-            println!("{}",i);
+            //println!("{}",i);
             pop_bit!(self.bitboards[i as usize],square);
         }
         for i in COLOR::w..=COLOR::BOTH {
             pop_bit!(self.occupencies[i as usize],square);
-            println!("{}",i);
+            //println!("{}",i);
         }
     }
     //this may have to be set to private later on

@@ -68,7 +68,6 @@ impl<'a> MoveGenerator<'a> {
     * Regulating the Casle rights after a moves i made and after a casle was made
     */ // These will be implmented later for now , making the pieces move is enough
     pub fn make_move(&mut self,mv:Move,flag:move_type) -> MakeMoveResult {
-        // We will keep this in case we need to take back the move
         let copy = self.board.clone();
         match flag {
             // Making the move normally
@@ -82,20 +81,13 @@ impl<'a> MoveGenerator<'a> {
                 let double = if get_move_doublejump!(mv) != 0 {true} else {false};
                 let castle = if get_move_castle!(mv) != 0 {true} else {false};
                 
-                // Now going though all the cases of the move and making the move accordingly 
+                // Then we handle each move case accordingly
                 
-                // Checking if the move happens to be a capture
+                // Now going though all the cases of the move and making the move accordingly 
                 if capture == true {
                     self.board.pop_square(dst);
                     self.board.pop_square(src);
-                    // Maybe it is also a Promotion so we check for that too
-                    if promo != Pieces::NONE as usize {
-                        self.board.spawn_piece(promo,dst);
-                    }
-                    // or just a normal capture
-                    else {
-                        self.board.spawn_piece(piece,dst);
-                    }
+                    self.board.spawn_piece(piece,dst);
                 }
                 // Making the double move and handling arangements
                 if double == true {
@@ -132,19 +124,7 @@ impl<'a> MoveGenerator<'a> {
                         // a error status 7
                         _ => return Err(7),
                     }
-                }
-                else {
-                    // A normal move happened nothing crazy
-                    self.board.pop_square(src);
-                    // checking if this nomal move happens to be a Promotion
-                    if promo != Pieces::NONE as usize {
-                        self.board.spawn_piece(promo,dst);
-                    }
-                    // else we just move
-                    else {
-                        self.board.spawn_piece(piece,dst);
-                    }
-                }
+                }  
                 Ok(())
             }
             // Its is said that we do this to avoid the "Horizon effect" , idk why this would help

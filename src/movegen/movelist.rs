@@ -18,8 +18,8 @@ use crate::chessboard::defs::{SQUARE_NAME,UNICODE_PIECES,Pieces};
 const MAX_LEGAL_MOVES:usize = 256;  
 
 pub struct MoveList {
-    list: Vec<Move>,
-    count:usize,
+    pub list: Vec<Move>,
+    pub count:usize,
 }
 impl MoveList {
     pub fn new() -> Self {
@@ -40,9 +40,12 @@ impl MoveList {
         "move", "piece", "promoted", "capture", "double", "enpass", "castling"
         );
         for i in 0..self.count {
-            let promoted = if get_move_promotion!(self.list[i]) == Pieces::NONE {"NONE"} else {UNICODE_PIECES[get_move_promotion!(self.list[i]) as usize]};
-            println!("{:<10}{:<10}{:<12}{:<12}{:<12}{:<12}{:<12}",
-                SQUARE_NAME[get_move_src!(self.list[i]) as usize].to_owned()+SQUARE_NAME[get_move_dst!(self.list[i]) as usize]
+            let promoted = if get_move_promotion!(self.list[i]) == Pieces::NONE {"NONE"} 
+            else {UNICODE_PIECES[get_move_promotion!(self.list[i]) as usize]};
+           
+            println!("{:<4}{:<10}{:<10}{:<12}{:<12}{:<12}{:<12}{:<12}",
+                i
+                ,SQUARE_NAME[get_move_src!(self.list[i]) as usize].to_owned()+SQUARE_NAME[get_move_dst!(self.list[i]) as usize]
                 ,UNICODE_PIECES[get_move_piece!(self.list[i]) as usize]
                 ,promoted
                 ,get_move_capture!(self.list[i])
