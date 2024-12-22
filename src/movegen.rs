@@ -68,8 +68,6 @@ impl<'a> MoveGenerator<'a> {
     * Regulating the Casle rights after a moves i made and after a casle was made
     */ // These will be implmented later for now , making the pieces move is enough
     pub fn make_move(&mut self,mv:Move,flag:move_type) -> MakeMoveResult {
-        // We will keep this in case we need to take back the move
-        let copy = self.board.clone();
         match flag {
             // Making the move normally
             move_type::ALL_MOVES => {
@@ -79,6 +77,7 @@ impl<'a> MoveGenerator<'a> {
                 let piece = get_move_piece!(mv) as usize;
                 let promo = get_move_promotion!(mv) as usize;
                 let capture = if get_move_capture!(mv) != 0 {true} else {false};
+                let enpassant = if get_move_enpassant!(mv) != 0 {true} else {false};
                 let double = if get_move_doublejump!(mv) != 0 {true} else {false};
                 let castle = if get_move_castle!(mv) != 0 {true} else {false};
                 
@@ -96,6 +95,21 @@ impl<'a> MoveGenerator<'a> {
                     else {
                         self.board.spawn_piece(piece,dst);
                     }
+                    return Ok(());
+                }
+                // Checking for enpassant
+                if enpassant == true {
+                    self.board.spawn_piece(piece,dst);
+                    // Check for each color 
+                    // white here 
+                    if piece <= Pieces::P {
+                        self.board.pop_square(dst+8);
+                    }
+                    // black here 
+                    else {
+                        self.board.pop_square(dst-8);
+                    }
+                    return Ok(());
                 }
                 // Making the double move and handling arangements
                 if double == true {
@@ -132,6 +146,7 @@ impl<'a> MoveGenerator<'a> {
                         // a error status 7
                         _ => return Err(7),
                     }
+                    return Ok(());
                 }
                 else {
                     // A normal move happened nothing crazy
@@ -144,6 +159,7 @@ impl<'a> MoveGenerator<'a> {
                     else {
                         self.board.spawn_piece(piece,dst);
                     }
+                    return Ok(());
                 }
                 Ok(())
             }

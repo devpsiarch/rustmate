@@ -38,7 +38,7 @@ impl Chessboard {
     }
     // If init function of init_board is still just fen parsing then it needs to go 
     pub fn init_board(&mut self) {
-        match self.parse_fen(FenPositions::TRICKY_POSITION) {
+        match self.parse_fen(FenPositions::KILLER_POSITION) {
             Ok(()) => {}
             Err(error_code) => panic!("failed to parse fen from init_board : code {error_code}")
         }
@@ -64,8 +64,10 @@ impl Chessboard {
     // This methode is the complement for the methode above and used only for testing 
     #[allow(dead_code)]
     pub fn pop_square(&mut self,square:u8) {
-        // Erasses a piece for the Chessboard object disregarding any rules of implications that
-        // may cause , THIS IS NOT A PART OF MAKING A MOVE 
+        // Erasses a piece for the Chessboard object , it deletes all of the bits from all the
+        // bitboards to make sure no piece is left in that square 
+        // This is in fact a part of the make_move function 
+        // unlike the previous version of the code state
         for i in Pieces::P..=Pieces::k {
             //println!("{}",i);
             pop_bit!(self.bitboards[i as usize],square);

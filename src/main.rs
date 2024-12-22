@@ -27,7 +27,6 @@ fn main() {
     let mut test = attacks::AttackMasks::new();
     test.load_attacks_maps();
     chess.init_board();
-    chess.spawn_piece(Pieces::P,SQUARE::b7);
     // From this point onwards the "chessboard" and the "attack maps" refreces belong to the
     // MoveGenerator
     
@@ -36,8 +35,8 @@ fn main() {
    
     // testing goes here and only here
     generator.board.print_chessboard();
-    generator.make_move(generator.moves.list[30],move_type::ALL_MOVES);
-
+    generator.make_move(generator.moves.list[13],move_type::ALL_MOVES);
+    
     generator.board.print_chessboard();
     generator.moves.print_all_moves();
 }
