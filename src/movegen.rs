@@ -20,14 +20,8 @@ use crate::{
 use crate::MoveMask;
 use crate::chessboard::defs::{SQUARE,Pieces,SIDES,CASTLING_RIGHTS_UPDATE};
 use crate::Move;
-// This list am gonna use to errors while parsiong the move parts in the MakeMove methode down
-// below
-const MOVE_PARTS: [&str;8] = [
-    "Source square","Destination square","Piece moved","Promotion status"
-    ,"Capture status","Double jump status","Enpassant status","Castling status"
-];
-// And this is the return type of said methode 
-type MakeMoveResult = Result<(),u8>;
+
+use crate::chessboard::bitboard::{get_lsb};
 // In the make move function we have to handle the "Horizon effect" althou i am not very familliar
 // with said effect but hey
 pub enum move_type {
@@ -67,8 +61,11 @@ impl<'a> MoveGenerator<'a> {
     * detecting Enpassant
     * Regulating Casle rights
     * Regulating side to move
-    */ // These will be implmented later for now , making the pieces move is enough
-    pub fn make_move(&mut self,mv:Move,flag:move_type) -> MakeMoveResult {
+    */
+    /*
+    * This is a peudo legal move generator to so we have to check if the move is illegal before
+    * returning */
+    pub fn make_move(&mut self,mv:Move,flag:move_type) -> bool {
         match flag {
             // Making the move normally
             move_type::ALL_MOVES => {
@@ -171,7 +168,20 @@ impl<'a> MoveGenerator<'a> {
                     SIDES::WHITE => self.board.side_to_move = SIDES::BLACK,
                     SIDES::BLACK => self.board.side_to_move = SIDES::WHITE,
                 }
-                Ok(())
+                // Cheking if said move makes the king in check
+                match self.board.side_to_move {
+                    SIDES::WHITE => {
+                        if self.square_attacked(SIDES::WHITE,get_lsb(self.board.bitboards[Pieces::k]) as u8) == true {
+                            return false;
+                        }
+                    }
+                    SIDES::BLACK => {
+                        if self.square_attacked(SIDES::BLACK,get_lsb(self.board.bitboards[Pieces::K]) as u8) == true {
+                            return false;
+                        }
+                    }
+                } 
+                return true; 
             }
             // Its is said that we do this to avoid the "Horizon effect" , idk why this would help
             // but hey 
@@ -179,7 +189,7 @@ impl<'a> MoveGenerator<'a> {
                 if get_move_capture!(mv) == 1 {
                     return self.make_move(mv,move_type::ALL_MOVES);
                 }
-                Ok(())
+                return true; 
             } 
         }
     } 
