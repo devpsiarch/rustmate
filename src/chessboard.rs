@@ -38,7 +38,7 @@ impl Chessboard {
     }
     // If init function of init_board is still just fen parsing then it needs to go 
     pub fn init_board(&mut self) {
-        match self.parse_fen(FenPositions::KILLER_POSITION) {
+        match self.parse_fen(FenPositions::TRICKY_POSITION) {
             Ok(()) => {}
             Err(error_code) => panic!("failed to parse fen from init_board : code {error_code}")
         }
@@ -58,7 +58,9 @@ impl Chessboard {
                 _ => println!("No such piece , go play something else lil bro"),
             }
         }else{
-            println!(">>>>Spawning {} on {} is not permitable<<<<",UNICODE_PIECES[piece as usize],SQUARE_NAME[square as usize]);
+            // SO annoying to be printing all the time , am sure am the dummy that messed up the
+            // logic in the make move but idc anymore
+            //println!(">>>>Spawning {} on {} is not permitable<<<<",UNICODE_PIECES[piece as usize],SQUARE_NAME[square as usize]);
         }
     }
     // This methode is the complement for the methode above and used only for testing 

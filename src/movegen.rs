@@ -18,7 +18,7 @@ use crate::{
     get_move_enpassant,
 };
 use crate::MoveMask;
-use crate::chessboard::defs::{SQUARE,Pieces};
+use crate::chessboard::defs::{SQUARE,Pieces,SIDES,CASTLING_RIGHTS_UPDATE};
 use crate::Move;
 // This list am gonna use to errors while parsiong the move parts in the MakeMove methode down
 // below
@@ -64,8 +64,9 @@ impl<'a> MoveGenerator<'a> {
     // This is it , the function that makes the moves
     // Also this function is responsible for cheching and setting up game states such as : 
     /*
-    * Setting up and checking if an Enpassant is availabe after a move
-    * Regulating the Casle rights after a moves i made and after a casle was made
+    * detecting Enpassant
+    * Regulating Casle rights
+    * Regulating side to move
     */ // These will be implmented later for now , making the pieces move is enough
     pub fn make_move(&mut self,mv:Move,flag:move_type) -> MakeMoveResult {
         match flag {
@@ -91,36 +92,28 @@ impl<'a> MoveGenerator<'a> {
                     if promo != Pieces::NONE as usize {
                         self.board.spawn_piece(promo,dst);
                     }
+                    // Checking for enpassant since it is considered as a capture too
+                    if enpassant == true {
+                        self.board.spawn_piece(piece,dst);
+                        // Checking for each color 
+                        match self.board.side_to_move {
+                            SIDES::WHITE => self.board.pop_square(dst+8),
+                            SIDES::BLACK => self.board.pop_square(dst-8),
+                        }
+                    }
                     // or just a normal capture
                     else {
                         self.board.spawn_piece(piece,dst);
                     }
-                    return Ok(());
                 }
-                // Checking for enpassant
-                if enpassant == true {
-                    self.board.spawn_piece(piece,dst);
-                    // Check for each color 
-                    // white here 
-                    if piece <= Pieces::P {
-                        self.board.pop_square(dst+8);
-                    }
-                    // black here 
-                    else {
-                        self.board.pop_square(dst-8);
-                    }
-                    return Ok(());
-                }
-                // Making the double move and handling arangements
-                if double == true {
-                    self.board.pop_square(src);
-                    self.board.spawn_piece(piece,dst);
-                    return Ok(());
-                }
+                // We reset the enpassant square each move is made because , in chess rule book,
+                // enpassant is availble in one turn only , unless taken
+                self.board.en_passant = SQUARE::NO_SQUARE as u8;
                 // Making the castle move
                 if castle == true {
                     self.board.pop_square(src);
                     self.board.spawn_piece(piece,dst);
+
                     // Going though the cases of where would the caslte be after the move
                     match dst {
                         // I didnt wanna split them even more cuz i think this is fine for now
@@ -136,17 +129,26 @@ impl<'a> MoveGenerator<'a> {
                         // And these are for black casltes 
                         SQUARE::g8 => {
                             self.board.pop_square(SQUARE::h8);
-                            self.board.spawn_piece(Pieces::R,SQUARE::f8);
+                            self.board.spawn_piece(Pieces::r,SQUARE::f8);
                         }
                         SQUARE::c8 => {
                             self.board.pop_square(SQUARE::a8);
-                            self.board.spawn_piece(Pieces::R,SQUARE::d8);
+                            self.board.spawn_piece(Pieces::r,SQUARE::d8);
                         }
-                        // Else if the cases arent matched then something happends and we retuns 
-                        // a error status 7
-                        _ => return Err(7),
+                        // If we panic here that means there is an error in the move generation
+                        // methode go check it out
+                        _ => panic!(),
                     }
-                    return Ok(());
+                }
+                // Making the double move and updating the en_passant square since we already reset
+                // it before hand after we made the enpassant move if it was availble
+                if double == true {
+                    self.board.pop_square(src);
+                    self.board.spawn_piece(piece,dst);
+                    match self.board.side_to_move {
+                        SIDES::WHITE => self.board.en_passant = dst + 8,
+                        SIDES::BLACK => self.board.en_passant = dst - 8,
+                    }
                 }
                 else {
                     // A normal move happened nothing crazy
@@ -159,7 +161,15 @@ impl<'a> MoveGenerator<'a> {
                     else {
                         self.board.spawn_piece(piece,dst);
                     }
-                    return Ok(());
+                }
+                // updating the caslte rights after all pieces have moved , if you dont get it ,
+                // check the caslte update array in defs 
+                self.board.castling_rights &= CASTLING_RIGHTS_UPDATE[src as usize];
+                self.board.castling_rights &= CASTLING_RIGHTS_UPDATE[dst as usize];
+                // Changing the side to move 
+                match self.board.side_to_move {
+                    SIDES::WHITE => self.board.side_to_move = SIDES::BLACK,
+                    SIDES::BLACK => self.board.side_to_move = SIDES::WHITE,
                 }
                 Ok(())
             }

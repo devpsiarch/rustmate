@@ -31,12 +31,28 @@ fn main() {
     // MoveGenerator
     
     let mut generator = MoveGenerator::new(&mut chess,&test);
+    
+    // Minupulating the board before generating the moves
+    generator.board.pop_square(SQUARE::b4);
+    generator.board.spawn_piece(Pieces::p,SQUARE::b4);
+    generator.board.spawn_piece(Pieces::P,SQUARE::b5);
+
     generator.generate_moves();
-   
+  
+
     // testing goes here and only here
-    generator.board.print_chessboard();
-    generator.make_move(generator.moves.list[13],move_type::ALL_MOVES);
+    generator.moves.print_all_moves();
+    for i in 0..generator.moves.count {
+        let copy = generator.board.clone();
+        let mut input = String::new();
+        generator.board.print_chessboard();
+        std::io::stdin().read_line(&mut input);
+        generator.make_move(generator.moves.list[i],move_type::ALL_MOVES);
+        generator.board.print_chessboard();
+        std::io::stdin().read_line(&mut input);
+        generator.board.restore_board(copy);
+    }
+
     
     generator.board.print_chessboard();
-    generator.moves.print_all_moves();
 }

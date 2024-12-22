@@ -167,7 +167,7 @@ impl<'a> MoveGenerator<'_> {
                         if atk != 0 {
                             dst = get_lsb(atk) as i8;
                             println!("Pawn enpassant from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
-                            self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::P as u32,Pieces::NONE,0,0,1,0));
+                            self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::P as u32,Pieces::NONE,1,0,1,0));
                         }
                     } 
                     pop_bit!(bitboard,src);
