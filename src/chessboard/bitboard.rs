@@ -57,7 +57,7 @@ pub fn bit_count(board:Bitboard) -> u8{
 pub fn get_lsb(board:Bitboard) -> u8 {
     let mut temp = board;
     if temp == 0 {
-        panic!("supplied zero bitboard to get tsb !!!");
+        panic!("supplied zero bitboard to get lsb !!!");
     }
     else{
         temp = (temp & temp.wrapping_neg()) - 1;   

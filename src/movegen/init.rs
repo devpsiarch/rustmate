@@ -6,7 +6,9 @@
 * declaring thme once and changing them makes a difference from just making and freeing them when
 * out scop
 */
-
+/*
+* I have commented out the print statement just in case i broke somthing here and am later obliged
+* to come here again in the generate move function and fix it*/
 /*
 * Also , please remove the printing of moves alr ? it takes time and its ugly , maybe comment them
 * out because you are such a dummy ull prolly forget what the code do if you ran into trouble , idk
@@ -118,20 +120,20 @@ impl<'a> MoveGenerator<'_> {
                             self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::P as u32,Pieces::B as u32,0,0,0,0));
                             self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::P as u32,Pieces::N as u32,0,0,0,0));
                             // AM only printing the moves to see if genrating the moves is going good
-                            println!("Pawn from {} to {} Promotion to queen ",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
-                            println!("Pawn from {} to {} Promotion to rook ",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
-                            println!("Pawn from {} to {} Promotion to bishop ",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
-                            println!("Pawn from {} to {} Promotion to knight ",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            //println!("Pawn from {} to {} Promotion to queen ",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            //println!("Pawn from {} to {} Promotion to rook ",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            //println!("Pawn from {} to {} Promotion to bishop ",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            //println!("Pawn from {} to {} Promotion to knight ",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         else {
                             // We check the normal fashion 1 square ahead move
                             self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::P as u32,Pieces::NONE,0,0,0,0));
-                            println!("Pawn from {} to {} ",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            //println!("Pawn from {} to {} ",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                             // We check if we can double jump here only if we are in the starting rank
                             if src >= SQUARE::a2.try_into().unwrap() && src <= SQUARE::h2.try_into().unwrap() 
                                 && get_bit!(self.board.occupencies[COLOR::BOTH],dst-8) == 0{
                                 self.moves.add_move(encode_move!(src as u32,(dst-8) as u32,Pieces::P as u32,Pieces::NONE,0,1,0,0));
-                                println!("Pawn from {} to {} double jump ",SQUARE_NAME[src as usize],SQUARE_NAME[(dst-8) as usize]);
+                                //println!("Pawn from {} to {} double jump ",SQUARE_NAME[src as usize],SQUARE_NAME[(dst-8) as usize]);
                             }
                         }
                     }
@@ -147,14 +149,14 @@ impl<'a> MoveGenerator<'_> {
                                 self.moves.add_move(encode_move!(src as u32,killed as u32,Pieces::P as u32,Pieces::R as u32,1,0,0,0));
                                 self.moves.add_move(encode_move!(src as u32,killed as u32,Pieces::P as u32,Pieces::B as u32,1,0,0,0));
                                 self.moves.add_move(encode_move!(src as u32,killed as u32,Pieces::P as u32,Pieces::N as u32,1,0,0,0));
-                                println!("Pawn Capture from {} to {} Promotion to queen ",SQUARE_NAME[src as usize],SQUARE_NAME[killed as usize]);
-                                println!("Pawn Capture from {} to {} Promotion to rook ",SQUARE_NAME[src as usize],SQUARE_NAME[killed as usize]);
-                                println!("Pawn Capture from {} to {} Promotion to bishop ",SQUARE_NAME[src as usize],SQUARE_NAME[killed as usize]);
-                                println!("Pawn Capture from {} to {} Promotion to knight ",SQUARE_NAME[src as usize],SQUARE_NAME[killed as usize]);
+                                //println!("Pawn Capture from {} to {} Promotion to queen ",SQUARE_NAME[src as usize],SQUARE_NAME[killed as usize]);
+                                //println!("Pawn Capture from {} to {} Promotion to rook ",SQUARE_NAME[src as usize],SQUARE_NAME[killed as usize]);
+                                //println!("Pawn Capture from {} to {} Promotion to bishop ",SQUARE_NAME[src as usize],SQUARE_NAME[killed as usize]);
+                                //println!("Pawn Capture from {} to {} Promotion to knight ",SQUARE_NAME[src as usize],SQUARE_NAME[killed as usize]);
                             }
                             else {
                                 self.moves.add_move(encode_move!(src as u32,killed as u32,Pieces::P as u32,Pieces::NONE,1,0,0,0));
-                                println!("Pawn Captures from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[killed as usize]);
+                                //println!("Pawn Captures from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[killed as usize]);
                             }
                             pop_bit!(atk,killed);
                         } 
@@ -166,7 +168,7 @@ impl<'a> MoveGenerator<'_> {
                         // Check if its available
                         if atk != 0 {
                             dst = get_lsb(atk) as i8;
-                            println!("Pawn enpassant from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            //println!("Pawn enpassant from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                             self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::P as u32,Pieces::NONE,1,0,1,0));
                         }
                     } 
@@ -190,20 +192,20 @@ impl<'a> MoveGenerator<'_> {
                             self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::p as u32,Pieces::r as u32,0,0,0,0));
                             self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::p as u32,Pieces::b as u32,0,0,0,0));
                             self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::p as u32,Pieces::n as u32,0,0,0,0));
-                            println!("pawn from {} to {} Promotion to queen ",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
-                            println!("pawn from {} to {} Promotion to rook ",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
-                            println!("pawn from {} to {} Promotion to bishop ",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
-                            println!("pawn from {} to {} Promotion to knight ",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            //println!("pawn from {} to {} Promotion to queen ",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            //println!("pawn from {} to {} Promotion to rook ",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            //println!("pawn from {} to {} Promotion to bishop ",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            //println!("pawn from {} to {} Promotion to knight ",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         else {
                             // We check the normal fashion 1 square ahead move 
                             self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::p as u32,Pieces::NONE,0,0,0,0));
-                            println!("pawn from {} to {} ",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            //println!("pawn from {} to {} ",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                             // We check if we can double jump here only if we are in the starting rank
                             if src >= SQUARE::a7.try_into().unwrap() && src <= SQUARE::h7.try_into().unwrap() 
                                 && get_bit!(self.board.occupencies[COLOR::BOTH],dst+8) == 0{
                                 self.moves.add_move(encode_move!(src as u32,(dst+8) as u32,Pieces::p as u32,Pieces::NONE,0,1,0,0));
-                                println!("pawn from {} to {} double jump ",SQUARE_NAME[src as usize],SQUARE_NAME[(dst+8) as usize]);
+                                //println!("pawn from {} to {} double jump ",SQUARE_NAME[src as usize],SQUARE_NAME[(dst+8) as usize]);
                             }
                         }
                     }
@@ -219,15 +221,15 @@ impl<'a> MoveGenerator<'_> {
                                 self.moves.add_move(encode_move!(src as u32,killed as u32,Pieces::p as u32,Pieces::r as u32,1,0,0,0));
                                 self.moves.add_move(encode_move!(src as u32,killed as u32,Pieces::p as u32,Pieces::b as u32,1,0,0,0));
                                 self.moves.add_move(encode_move!(src as u32,killed as u32,Pieces::p as u32,Pieces::n as u32,1,0,0,0));
-                                println!("Pawn Capture from {} to {} Promotion to queen ",SQUARE_NAME[src as usize],SQUARE_NAME[killed as usize]);
-                                println!("Pawn Capture from {} to {} Promotion to rook ",SQUARE_NAME[src as usize],SQUARE_NAME[killed as usize]);
-                                println!("Pawn Capture from {} to {} Promotion to bishop ",SQUARE_NAME[src as usize],SQUARE_NAME[killed as usize]);
-                                println!("Pawn Capture from {} to {} Promotion to knight ",SQUARE_NAME[src as usize],SQUARE_NAME[killed as usize]);
+                                //println!("Pawn Capture from {} to {} Promotion to queen ",SQUARE_NAME[src as usize],SQUARE_NAME[killed as usize]);
+                                //println!("Pawn Capture from {} to {} Promotion to rook ",SQUARE_NAME[src as usize],SQUARE_NAME[killed as usize]);
+                                //println!("Pawn Capture from {} to {} Promotion to bishop ",SQUARE_NAME[src as usize],SQUARE_NAME[killed as usize]);
+                                //println!("Pawn Capture from {} to {} Promotion to knight ",SQUARE_NAME[src as usize],SQUARE_NAME[killed as usize]);
                             }
                             else {
                                 // Check the normal capture
                                 self.moves.add_move(encode_move!(src as u32,killed as u32,Pieces::p as u32,Pieces::NONE,1,0,0,0));
-                                println!("Pawn Captures from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[killed as usize]);
+                                //println!("Pawn Captures from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[killed as usize]);
                             }
                             pop_bit!(atk,killed);
                         } 
@@ -240,7 +242,7 @@ impl<'a> MoveGenerator<'_> {
                         if atk != 0 {
                             dst = get_lsb(atk) as i8;
                             self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::p as u32,Pieces::NONE,1,0,1,0));
-                            println!("Pawn enpassant from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            //println!("Pawn enpassant from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                     } 
                     pop_bit!(bitboard,src);
@@ -269,7 +271,7 @@ impl<'a> MoveGenerator<'_> {
                 && self.square_attacked(SIDES::BLACK,SQUARE::g1) == false //where kings lands 
                 && self.square_attacked(SIDES::BLACK,SQUARE::e1) == false{// Check king square
                     self.moves.add_move(encode_move!(SQUARE::e1 as u32,SQUARE::g1 as u32,Pieces::K as u32,Pieces::NONE,0,0,0,1));
-                    println!("white King caslte from {} to {}",SQUARE_NAME[SQUARE::e1 as usize],SQUARE_NAME[SQUARE::g1 as usize]);
+                    //println!("white King caslte from {} to {}",SQUARE_NAME[SQUARE::e1 as usize],SQUARE_NAME[SQUARE::g1 as usize]);
                 }
 
                 if self.board.castling_rights & Castle::Q != 0 
@@ -280,7 +282,7 @@ impl<'a> MoveGenerator<'_> {
                 && self.square_attacked(SIDES::BLACK,SQUARE::c1) == false  //King landing
                 && self.square_attacked(SIDES::BLACK,SQUARE::e1) == false {// for king square
                     self.moves.add_move(encode_move!(SQUARE::e1 as u32,SQUARE::c1 as u32,Pieces::K as u32,Pieces::NONE,0,0,0,1));
-                    println!("white queen caslte from {} to {}",SQUARE_NAME[SQUARE::e1 as usize],SQUARE_NAME[SQUARE::c1 as usize]);
+                    //println!("white queen caslte from {} to {}",SQUARE_NAME[SQUARE::e1 as usize],SQUARE_NAME[SQUARE::c1 as usize]);
                 }
             }
             SIDES::BLACK => {
@@ -291,7 +293,7 @@ impl<'a> MoveGenerator<'_> {
                 && self.square_attacked(SIDES::WHITE,SQUARE::g8) == false //king landing here
                 && self.square_attacked(SIDES::WHITE,SQUARE::e8) == false{// Check kings square
                     self.moves.add_move(encode_move!(SQUARE::e8 as u32,SQUARE::g8 as u32,Pieces::k as u32,Pieces::NONE,0,0,0,1));
-                    println!("black king caslte from {} to {}",SQUARE_NAME[SQUARE::e8 as usize],SQUARE_NAME[SQUARE::g8 as usize]);
+                    //println!("black king caslte from {} to {}",SQUARE_NAME[SQUARE::e8 as usize],SQUARE_NAME[SQUARE::g8 as usize]);
                 }
 
                 if self.board.castling_rights & Castle::q != 0 
@@ -302,7 +304,7 @@ impl<'a> MoveGenerator<'_> {
                 && self.square_attacked(SIDES::WHITE,SQUARE::c8) == false //king landing
                 && self.square_attacked(SIDES::WHITE,SQUARE::e8) == false{// king square
                     self.moves.add_move(encode_move!(SQUARE::e8 as u32,SQUARE::c8 as u32,Pieces::k as u32,Pieces::NONE,0,0,0,1));
-                    println!("black queen caslte from {} to {}",SQUARE_NAME[SQUARE::e8 as usize],SQUARE_NAME[SQUARE::c8 as usize]);
+                    //println!("black queen caslte from {} to {}",SQUARE_NAME[SQUARE::e8 as usize],SQUARE_NAME[SQUARE::c8 as usize]);
                 }
             }
         }
@@ -328,12 +330,12 @@ impl<'a> MoveGenerator<'_> {
                         // If the move is a Capture move
                         if get_bit!(self.board.occupencies[COLOR::b],dst) == 1 {
                             self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::K as u32,Pieces::NONE,1,0,0,0));
-                            println!("White King Captures from {} to {}",SQUARE_NAME[src],SQUARE_NAME[dst as usize]);
+                            //println!("White King Captures from {} to {}",SQUARE_NAME[src],SQUARE_NAME[dst as usize]);
                         }
                         // Else it is just a normal move
                         else {
                             self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::K as u32,Pieces::NONE,0,0,0,0));
-                            println!("White King moves from {} to {}",SQUARE_NAME[src],SQUARE_NAME[dst as usize]);
+                            //println!("White King moves from {} to {}",SQUARE_NAME[src],SQUARE_NAME[dst as usize]);
                         }
                     }
                     pop_bit!(atk,dst);
@@ -354,12 +356,12 @@ impl<'a> MoveGenerator<'_> {
                         // If the move is a Capture move
                         if get_bit!(self.board.occupencies[COLOR::w],dst) == 1 {
                             self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::k as u32,Pieces::NONE,1,0,0,0));
-                            println!("Black King Captures from {} to {}",SQUARE_NAME[src],SQUARE_NAME[dst as usize]);
+                            //println!("Black King Captures from {} to {}",SQUARE_NAME[src],SQUARE_NAME[dst as usize]);
                         }
                         // Else it is just a normal move
                         else {
                             self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::k as u32,Pieces::NONE,0,0,0,0));
-                            println!("Black King moves from {} to {}",SQUARE_NAME[src],SQUARE_NAME[dst as usize]);
+                            //println!("Black King moves from {} to {}",SQUARE_NAME[src],SQUARE_NAME[dst as usize]);
                         }
                     }
                     pop_bit!(atk,dst);
@@ -389,12 +391,12 @@ impl<'a> MoveGenerator<'_> {
                         // The case for capturing
                         if get_bit!(self.board.occupencies[COLOR::b],dst) == 1 {
                             self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::N as u32,Pieces::NONE,1,0,0,0));
-                            println!("White knight Capture from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            //println!("White knight Capture from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         // Case for a chill knight ... 
                         else{
                             self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::N as u32,Pieces::NONE,0,0,0,0));
-                            println!("White knight from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            //println!("White knight from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         pop_bit!(atk,dst);
                     }
@@ -415,12 +417,12 @@ impl<'a> MoveGenerator<'_> {
                         // The case for capturing
                         if get_bit!(self.board.occupencies[COLOR::w],dst) == 1 {
                             self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::n as u32,Pieces::NONE,1,0,0,0));
-                            println!("Black knight Capture from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            //println!("Black knight Capture from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         // Case for a chill knight ... 
                         else{
                             self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::n as u32,Pieces::NONE,0,0,0,0));
-                            println!("Black knight from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            //println!("Black knight from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         pop_bit!(atk,dst);
                     }
@@ -448,12 +450,12 @@ impl<'a> MoveGenerator<'_> {
                         // Checking if we are killing an enemy  
                         if get_bit!(self.board.occupencies[COLOR::b],dst) == 1 {
                             self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::B as u32,Pieces::NONE,1,0,0,0));
-                            println!("white Bishop Captures from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            //println!("white Bishop Captures from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         // else its just chilling 
                         else {
                             self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::B as u32,Pieces::NONE,0,0,0,0));
-                            println!("white Bishop moves from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            //println!("white Bishop moves from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         pop_bit!(atk,dst);
                     }
@@ -473,12 +475,12 @@ impl<'a> MoveGenerator<'_> {
                         // Checking if we are killing an enemy  
                         if get_bit!(self.board.occupencies[COLOR::w],dst) == 1 {
                             self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::b as u32,Pieces::NONE,1,0,0,0));
-                            println!("black Bishop Captures from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            //println!("black Bishop Captures from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         // else its just chilling 
                         else {
                             self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::b as u32,Pieces::NONE,0,0,0,0));
-                            println!("black Bishop moves from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            //println!("black Bishop moves from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         pop_bit!(atk,dst);
                     }
@@ -505,12 +507,12 @@ impl<'a> MoveGenerator<'_> {
                         // Checking if we are killing an enemy  
                         if get_bit!(self.board.occupencies[COLOR::b],dst) == 1 {
                             self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::R as u32,Pieces::NONE,1,0,0,0));
-                            println!("white ROOK Captures from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            //println!("white ROOK Captures from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         // else its just chilling 
                         else {
                             self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::R as u32,Pieces::NONE,0,0,0,0));
-                            println!("white Rook moves from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            //println!("white Rook moves from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         pop_bit!(atk,dst);
                     }
@@ -530,12 +532,12 @@ impl<'a> MoveGenerator<'_> {
                         // Checking if we are killing an enemy  
                         if get_bit!(self.board.occupencies[COLOR::w],dst) == 1 {
                             self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::r as u32,Pieces::NONE,1,0,0,0));
-                            println!("black Rook Captures from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            //println!("black Rook Captures from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         // else its just chilling 
                         else {
                             self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::r as u32,Pieces::NONE,0,0,0,0));
-                            println!("black Rook moves from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            //println!("black Rook moves from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         pop_bit!(atk,dst);
                     }
@@ -562,12 +564,12 @@ impl<'a> MoveGenerator<'_> {
                         // Checking if we are killing an enemy  
                         if get_bit!(self.board.occupencies[COLOR::b],dst) == 1 {
                             self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::Q as u32,Pieces::NONE,1,0,0,0));
-                            println!("white Queen Captures from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            //println!("white Queen Captures from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         // else its just chilling 
                         else {
                             self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::Q as u32,Pieces::NONE,0,0,0,0));
-                            println!("white Queen moves from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            //println!("white Queen moves from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         pop_bit!(atk,dst);
                     }
@@ -587,12 +589,12 @@ impl<'a> MoveGenerator<'_> {
                         // Checking if we are killing an enemy  
                         if get_bit!(self.board.occupencies[COLOR::w],dst) == 1 {
                             self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::q as u32,Pieces::NONE,1,0,0,0));
-                            println!("black Queen Captures from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            //println!("black Queen Captures from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         // else its just chilling 
                         else {
                             self.moves.add_move(encode_move!(src as u32,dst as u32,Pieces::q as u32,Pieces::NONE,0,0,0,0));
-                            println!("black Queen moves from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
+                            //println!("black Queen moves from {} to {}",SQUARE_NAME[src as usize],SQUARE_NAME[dst as usize]);
                         }
                         pop_bit!(atk,dst);
                     }

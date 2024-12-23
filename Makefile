@@ -3,4 +3,5 @@ debug:
 check:
 	cargo check
 run: 
+	cargo build --release
 	cargo run

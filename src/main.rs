@@ -12,13 +12,15 @@ use crate::chessboard::defs;
 use crate::chessboard::magic;
 use crate::defs::{SIDES,Pieces,SQUARE};
 
+use crate::movegen::perf::{perf_driver};
+
 /*
 * Here use the crates that the main function does not need but you do for 
 * debugging alr ? i dont wanna deal with a billion warnings
 */
 
 use crate::movegen::{move_type};
-
+use std::time::Instant;
 //i will be running tests here untile everything is set and done
 fn main() {
     // Here i define and init every "essential" <if you will> part of the engine
@@ -27,18 +29,24 @@ fn main() {
     let mut test = attacks::AttackMasks::new();
     test.load_attacks_maps();
     chess.init_board();
+    chess.print_chessboard(); 
+    let start = Instant::now(); 
+    let (a, b, c, d, e) = perf_driver(chess.clone(), test.clone(), 3);
+    println!("Moves found: {}, {}, {}, {}, {}", a, b, c, d, e);
+    println!("Time taken: {:.2?}",start.elapsed());
+    return;
     // From this point onwards the "chessboard" and the "attack maps" refreces belong to the
     // MoveGenerator
     
     let mut generator = MoveGenerator::new(&mut chess,&test);
     
     // Minupulating the board before generating the moves
-    generator.board.spawn_piece(Pieces::B,SQUARE::c6);
+    /*generator.board.spawn_piece(Pieces::B,SQUARE::c6);
     generator.board.pop_square(SQUARE::e2);
     generator.board.pop_square(SQUARE::a6);
     generator.board.pop_square(SQUARE::d7);
     generator.board.spawn_piece(Pieces::q,SQUARE::e3);
-
+    */
     generator.generate_moves();
   
 

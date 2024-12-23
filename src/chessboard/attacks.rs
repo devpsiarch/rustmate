@@ -10,6 +10,7 @@ use crate::chessboard::atkgen::{
 // this will hold all of our attack masks , this may be changed in the future 
 // i willl add more pices attacks here each time we make one
 // idk if thie will also hold the bishop , queen and rook tables ..
+#[derive(Clone)]
 pub struct AttackMasks {
     pub pawn_attack_masks: [[Bitboard;64];2] ,
     pub king_attack_masks: [Bitboard;64] ,

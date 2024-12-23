@@ -101,4 +101,8 @@ impl Chessboard {
         self.half_move_clock = copy.half_move_clock;
         self.move_count = copy.move_count;
     }
+    // resets all the occupencies , this is use in the make move function 
+    pub fn reset_occupencies(&mut self) {
+        self.occupencies = [0;3];
+    }
 }
