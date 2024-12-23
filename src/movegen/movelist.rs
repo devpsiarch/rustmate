@@ -34,6 +34,7 @@ impl MoveList {
     }
     // Pretty prints the moves , this is only for me to not go absolutly insane while trouble
     // shooting
+    #[allow(dead_code)]
     pub fn print_all_moves(&self) {
         println!(
         "{:<10}{:<10}{:<12}{:<12}{:<12}{:<12}{:<12}",

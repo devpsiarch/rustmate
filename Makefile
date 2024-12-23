@@ -4,4 +4,4 @@ check:
 	cargo check
 run: 
 	cargo build --release
-	cargo run
+	target/release/rustmate

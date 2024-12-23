@@ -15,7 +15,7 @@
 * just stop prining
 * */
 use crate::movegen::MoveGenerator; 
-use crate::chessboard::defs::{COLOR,SQUARE_NAME,SIDES,SLIDER,SQUARE,Castle,Pieces};
+use crate::chessboard::defs::{COLOR,SIDES,SLIDER,SQUARE,Castle,Pieces};
 use crate::{get_bit,pop_bit,set_bit, chessboard::bitboard::{Bitboard,get_lsb}};
 use crate::{
     encode_move,

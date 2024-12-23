@@ -2,7 +2,6 @@ mod chessboard;
 use chessboard::{Chessboard};
 
 mod movegen;
-use crate::movegen::MoveGenerator;
 use crate::movegen::movecode::{Move,MoveMask};
 use crate::movegen::movelist::{MoveList};
 //i am using these here just for testing future me , take them down when everything is set
@@ -10,10 +9,10 @@ use crate::chessboard::bitboard;
 use crate::chessboard::attacks;
 use crate::chessboard::defs;
 use crate::chessboard::magic;
-use crate::defs::{SIDES,Pieces,SQUARE};
+use crate::defs::{Pieces,SQUARE};
 
-use crate::movegen::perf::{perf_driver};
-
+use crate::movegen::perft::{perft_driver};
+//use crate::movegen::MoveGenerator;
 /*
 * Here use the crates that the main function does not need but you do for 
 * debugging alr ? i dont wanna deal with a billion warnings
@@ -31,39 +30,7 @@ fn main() {
     chess.init_board();
     chess.print_chessboard(); 
     let start = Instant::now(); 
-    let (a, b, c, d, e) = perf_driver(chess.clone(), test.clone(), 3);
-    println!("Moves found: {}, {}, {}, {}, {}", a, b, c, d, e);
+    println!("Moves found: {}",perft_driver(&mut chess,&test, 6));
     println!("Time taken: {:.2?}",start.elapsed());
     return;
-    // From this point onwards the "chessboard" and the "attack maps" refreces belong to the
-    // MoveGenerator
-    
-    let mut generator = MoveGenerator::new(&mut chess,&test);
-    
-    // Minupulating the board before generating the moves
-    /*generator.board.spawn_piece(Pieces::B,SQUARE::c6);
-    generator.board.pop_square(SQUARE::e2);
-    generator.board.pop_square(SQUARE::a6);
-    generator.board.pop_square(SQUARE::d7);
-    generator.board.spawn_piece(Pieces::q,SQUARE::e3);
-    */
-    generator.generate_moves();
-  
-
-    // testing goes here and only here
-    generator.moves.print_all_moves();
-    for i in 0..generator.moves.count {
-        let copy = generator.board.clone();
-        let mut input = String::new();
-        if generator.make_move(generator.moves.list[i],move_type::ALL_MOVES) == true {
-            copy.print_chessboard();
-            generator.board.print_chessboard();
-            std::io::stdin().read_line(&mut input);
-        }else{
-            {}
-        }
-        generator.board.restore_board(copy);
-    }
-
-    
 }

@@ -1,5 +1,5 @@
 pub mod defs;
-use defs::{Pieces,COLOR,SQUARE_NAME,SIDES,SQUARE,FenPositions,UNICODE_PIECES};
+use defs::{Pieces,COLOR,SIDES,SQUARE,FenPositions};
 pub mod bitboard;
 use bitboard::{Bitboard};
 use crate::set_bit;
@@ -11,7 +11,7 @@ pub mod magic;
 pub mod atkgen;
 
 
-#[derive(Clone)]
+#[derive(Clone,Copy)]
 pub struct Chessboard {
     pub bitboards : [Bitboard;12],          //for each piece and diff color
     pub side_to_move : SIDES,               // its an enum carfull
@@ -38,7 +38,7 @@ impl Chessboard {
     }
     // If init function of init_board is still just fen parsing then it needs to go 
     pub fn init_board(&mut self) {
-        match self.parse_fen(FenPositions::TRICKY_POSITION) {
+        match self.parse_fen(FenPositions::STARTING_POSITION) {
             Ok(()) => {}
             Err(error_code) => panic!("failed to parse fen from init_board : code {error_code}")
         }

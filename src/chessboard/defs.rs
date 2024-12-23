@@ -141,7 +141,7 @@ impl COLOR {
     pub const BOTH:usize = 2;
 } 
 
-#[derive(Clone)]
+#[derive(Clone,Copy)]
 pub enum SIDES {
     WHITE,
     BLACK,

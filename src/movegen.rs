@@ -1,7 +1,7 @@
 pub mod init;
 pub mod movecode;
 pub mod movelist;
-pub mod perf;
+pub mod perft;
 use crate::Chessboard;
 use crate::attacks::AttackMasks;
 use crate::{MoveList};
@@ -25,6 +25,8 @@ use crate::Move;
 use crate::chessboard::bitboard::{get_lsb};
 // In the make move function we have to handle the "Horizon effect" althou i am not very familliar
 // with said effect but hey
+#[allow(non_camel_case_types)]
+#[allow(dead_code)]
 pub enum move_type {
     ALL_MOVES,
     CAPTURE_MOVE,
@@ -195,7 +197,7 @@ impl<'a> MoveGenerator<'a> {
                     SIDES::BLACK => self.board.side_to_move = SIDES::WHITE,
                 }
                 // Cheking if said move makes the king in check
-                let mut king:usize;
+                let king:usize;
                 match self.board.side_to_move {
                     SIDES::WHITE => {
                         king = Pieces::k; 
