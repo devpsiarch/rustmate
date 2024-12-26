@@ -4,7 +4,7 @@ use crate::chessboard::bitboard;
 use crate::chessboard::attacks;
 use crate::chessboard::defs;
 use crate::chessboard::magic;
-use crate::defs::{Pieces,SQUARE};
+use crate::defs::{Pieces,SQUARE,FenPositions};
 
 
 mod movegen;
@@ -25,20 +25,28 @@ use crate::movegen::{move_type};
 use std::time::Instant;
 //i will be running tests here untile everything is set and done
 fn main() {
-    match uci() {
-        Ok(()) => println!("UCI protocol session ended with success."),
-        Err(code) => println!("UCI protocol session exited with error code {code}") ,
-    }
-    return ;
-    // init the ATTACK tables , sooner we will replace this with an instance that will do everything
-    let mut ATTACK_TABLE = attacks::AttackMasks::new();
-    ATTACK_TABLE.load_attacks_maps();
+     // init the ATTACK tables , sooner we will replace this with an instance that will do everything
+    let mut attacks = attacks::AttackMasks::new();
+    attacks.load_attacks_maps();
+    let mut chess = Chessboard::new();   
 
-    let mut chess = Chessboard::new();
-    chess.init_board();
-    chess.print_chessboard(); 
-    let start = Instant::now(); 
-    println!("Moves found: {}",perft_driver(&mut chess,&ATTACK_TABLE, 6));
-    println!("Time taken: {:.2?}",start.elapsed());
+    let dev = false;
+
+    // Then we are developing the engine
+    if dev == true {
+        chess.init_board(FenPositions::TRICKY_POSITION);
+        chess.print_chessboard(); 
+        let start = Instant::now(); 
+        println!("Moves found: {}",perft_driver(&mut chess,&attacks, 6));
+        println!("Time taken: {:.2?}",start.elapsed());
+    }
+    // Then we are working on the UCI
+    else{
+        match uci(&mut chess,&attacks) {
+            Ok(()) => println!("UCI protocol session ended with success."),
+            Err(code) => println!("UCI protocol session exited with error code {code}") ,
+        }
+    } 
+
     return;
 }
