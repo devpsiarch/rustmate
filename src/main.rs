@@ -15,6 +15,8 @@ use crate::movegen::perft::{perft_driver};
 
 mod comm;
 use crate::comm::uci;
+
+mod search;
 //use crate::movegen::MoveGenerator;
 /*
 * Here use the crates that the main function does not need but you do for 

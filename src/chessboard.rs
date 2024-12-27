@@ -1,5 +1,5 @@
 pub mod defs;
-use defs::{Pieces,COLOR,SIDES,SQUARE,FenPositions};
+use defs::{Pieces,COLOR,SIDES,SQUARE};
 pub mod bitboard;
 use bitboard::{Bitboard};
 use crate::set_bit;
