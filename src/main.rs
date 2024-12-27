@@ -4,7 +4,7 @@ use crate::chessboard::bitboard;
 use crate::chessboard::attacks;
 use crate::chessboard::defs;
 use crate::chessboard::magic;
-use crate::defs::{Pieces,SQUARE,FenPositions};
+use crate::defs::{FenPositions};
 
 
 mod movegen;

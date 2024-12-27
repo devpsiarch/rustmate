@@ -1,6 +1,6 @@
 use crate::Chessboard;
 use crate::chessboard::attacks::AttackMasks;
-use crate::chessboard::defs::{Pieces,FenPositions,algb_to_square,SQUARE};
+use crate::chessboard::defs::{Pieces,FenPositions,algb_to_square,SQUARE,SQUARE_NAME};
 
 use crate::movegen::MoveGenerator;
 use crate::movegen::movecode::{Move};
@@ -145,8 +145,24 @@ pub fn position_handler(board:&mut Chessboard,atk:&AttackMasks,parts:&Vec<&str>)
     board.print_chessboard();
 }
 
+// a function converts a Move to a uci move
+pub fn get_uci_move(mov:Move) -> String {
+    let mut result = String::new();
+    result.push_str(SQUARE_NAME[get_move_src!(mov) as usize]);
+    result.push_str(SQUARE_NAME[get_move_dst!(mov) as usize]);
+    let promo = get_move_promotion!(mov) as usize;
+    match promo {
+        Pieces::Q | Pieces::q => result.push_str("q"), 
+        Pieces::B | Pieces::b => result.push_str("b"), 
+        Pieces::N | Pieces::n => result.push_str("n"), 
+        Pieces::R | Pieces::r => result.push_str("r"),
+        _ => (),
+    }
+    result
+} 
+
 // handler for the "go" command , this will be edited to handler more commands in the future
-pub fn go_handler(parts:&Vec<&str>) {
+pub fn go_handler(board:&mut Chessboard,atk:&AttackMasks,parts:&Vec<&str>) {
     // some "go" commands : go depth 5 , go infinte , go nodes 10000 ... lets try to make it easy
     // for future me to add em
     
@@ -156,10 +172,10 @@ pub fn go_handler(parts:&Vec<&str>) {
             "depth" => {
                 // getting the depth
                 let depth:u32 = parts[2].parse().unwrap();
-                let move_found = search_move(depth);
+                let move_found = get_uci_move(search_move(board,atk,depth));
                 // We need a function that converts a "Move" to a move the UCI can handle
                 // place holder
-                println!("bestmove d4e8");
+                println!("bestmove {move_found}");
             }
             "nodes" => {
                 todo!();

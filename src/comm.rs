@@ -54,7 +54,7 @@ pub fn uci(board:&mut Chessboard,atk:&AttackMasks) -> UciExitStatus {
                 let parts: Vec<&str> = buffer.split(" ").collect();
                 match parts[0] {
                     "position" => position_handler(board,atk,&parts),
-                    "go" => go_handler(&parts),
+                    "go" => go_handler(board,atk,&parts),
                     _ => {
                         // We dont exit when encortering unreconised command
                         ()
