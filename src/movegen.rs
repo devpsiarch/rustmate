@@ -208,6 +208,7 @@ impl<'a> MoveGenerator<'a> {
                 }
                 if self.square_attacked(self.board.side_to_move.clone(),get_lsb(self.board.bitboards[king]) as u8) == true {
                     // The move is not legal then f this and restore the previous board
+                    // What this means is that the move is not made if its not legal
                     self.board.restore_board(copy);
                     return false;
                 }

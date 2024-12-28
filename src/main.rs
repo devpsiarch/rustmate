@@ -29,7 +29,7 @@ use crate::evalu::evaluate;
 use crate::movegen::{move_type};
 use std::time::Instant;
 
-use crate::search::{Search};
+use crate::search::{Search,INF};
 //i will be running tests here untile everything is set and done
 fn main() {
      // init the ATTACK tables , sooner we will replace this with an instance that will do everything
@@ -45,7 +45,7 @@ fn main() {
         chess.print_chessboard();
         println!("the value of this board : {}",evaluate(chess.clone())); 
         let start = Instant::now(); 
-        println!("best eval: {}",Search::minimax(&mut chess.clone(),&attacks,5,chess.side_to_move.clone()));
+        println!("best eval: {}",Search::minimax_alpha_beta(&mut chess.clone(),&attacks,6,-INF,INF,chess.side_to_move.clone()));
         println!("Time taken: {:.2?}",start.elapsed());
         return ;
         let start = Instant::now(); 
