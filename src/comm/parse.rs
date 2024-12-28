@@ -4,6 +4,7 @@ use crate::chessboard::defs::{Pieces,FenPositions,algb_to_square,SQUARE,SQUARE_N
 
 use crate::movegen::MoveGenerator;
 use crate::movegen::movecode::{Move};
+use crate::movegen::perft::{perft_driver};
 use crate::{
     get_move_dst,
     get_move_src,
@@ -13,12 +14,12 @@ use crate::MoveMask;
 use crate::move_type::ALL_MOVES;
 
 
-use crate::search::{search_move};
+use crate::search::{Search};
 /*
 * Idk if creating a new instance of Generator a good idea for each handler function , for now let
 * it be like this , if problems arouse then well fix it
 */
-
+use std::time::Instant;
 
 // Every line should end in a '\n'
 pub fn show_engine_info() {
@@ -172,10 +173,16 @@ pub fn go_handler(board:&mut Chessboard,atk:&AttackMasks,parts:&Vec<&str>) {
             "depth" => {
                 // getting the depth
                 let depth:u32 = parts[2].parse().unwrap();
-                let move_found = get_uci_move(search_move(board,atk,depth));
+                let move_found = get_uci_move(Search::search_move(board,atk,depth));
                 // We need a function that converts a "Move" to a move the UCI can handle
                 // place holder
                 println!("bestmove {move_found}");
+            }
+            "perft" => {
+                let depth:u32 = parts[2].parse().unwrap();
+                let start = Instant::now(); 
+                println!("Moves found: {}",perft_driver(board,atk, depth));
+                println!("Time taken: {:.2?}",start.elapsed());
             }
             "nodes" => {
                 todo!();

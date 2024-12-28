@@ -105,4 +105,8 @@ impl Chessboard {
     pub fn reset_occupencies(&mut self) {
         self.occupencies = [0;3];
     }
+    // This will be implimented later
+    pub fn game_over(&self) -> bool {
+        false 
+    }
 }

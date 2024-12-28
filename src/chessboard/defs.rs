@@ -142,6 +142,7 @@ impl COLOR {
 } 
 
 #[derive(Clone,Copy)]
+#[derive(PartialEq)]
 pub enum SIDES {
     WHITE,
     BLACK,

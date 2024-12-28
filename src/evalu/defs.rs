@@ -1,3 +1,7 @@
+/*
+* Maybe we should explore more ways to evaluate a chess position that are not linear*/
+
+
 /*Well define here the nececcary elements to make the evaluation work*/
 // These are the costs of the pieces on board
 pub const PIECES_COST:[i32;12] = [      // These are ment to be indexed by 'Pieces::'

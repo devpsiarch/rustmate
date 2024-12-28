@@ -35,16 +35,15 @@ fn main() {
     attacks.load_attacks_maps();
     let mut chess = Chessboard::new();   
 
-    let dev = true;
+    let dev = false;
 
     // Then we are developing the engine
     if dev == true {
-        chess.init_board(FenPositions::TRICKY_POSITION);
+        chess.init_board("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
         chess.print_chessboard();
         println!("the value of this board : {}",evaluate(chess.clone())); 
-        return;
         let start = Instant::now(); 
-        println!("Moves found: {}",perft_driver(&mut chess,&attacks, 6));
+        println!("Moves found: {}",perft_driver(&mut chess,&attacks, 5));
         println!("Time taken: {:.2?}",start.elapsed());
     }
     // Then we are working on the UCI
