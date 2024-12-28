@@ -17,6 +17,9 @@ mod comm;
 use crate::comm::uci;
 
 mod search;
+
+mod evalu;
+use crate::evalu::evaluate;
 //use crate::movegen::MoveGenerator;
 /*
 * Here use the crates that the main function does not need but you do for 
@@ -32,12 +35,14 @@ fn main() {
     attacks.load_attacks_maps();
     let mut chess = Chessboard::new();   
 
-    let dev = false;
+    let dev = true;
 
     // Then we are developing the engine
     if dev == true {
         chess.init_board(FenPositions::TRICKY_POSITION);
-        chess.print_chessboard(); 
+        chess.print_chessboard();
+        println!("the value of this board : {}",evaluate(chess.clone())); 
+        return;
         let start = Instant::now(); 
         println!("Moves found: {}",perft_driver(&mut chess,&attacks, 6));
         println!("Time taken: {:.2?}",start.elapsed());
