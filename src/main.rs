@@ -28,6 +28,8 @@ use crate::evalu::evaluate;
 
 use crate::movegen::{move_type};
 use std::time::Instant;
+
+use crate::search::{Search};
 //i will be running tests here untile everything is set and done
 fn main() {
      // init the ATTACK tables , sooner we will replace this with an instance that will do everything
@@ -35,13 +37,17 @@ fn main() {
     attacks.load_attacks_maps();
     let mut chess = Chessboard::new();   
 
-    let dev = false;
+    let dev = true;
 
     // Then we are developing the engine
     if dev == true {
         chess.init_board("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
         chess.print_chessboard();
         println!("the value of this board : {}",evaluate(chess.clone())); 
+        let start = Instant::now(); 
+        println!("best eval: {}",Search::minimax(&mut chess.clone(),&attacks,5,chess.side_to_move.clone()));
+        println!("Time taken: {:.2?}",start.elapsed());
+        return ;
         let start = Instant::now(); 
         println!("Moves found: {}",perft_driver(&mut chess,&attacks, 5));
         println!("Time taken: {:.2?}",start.elapsed());

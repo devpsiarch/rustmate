@@ -17,12 +17,16 @@ const INF:i32 = std::i32::MAX;
 pub struct Search;
 impl Search {
     pub fn search_move(board:&mut Chessboard,atk:&AttackMasks,depth:u32) -> Move{
-        Self::random_move(board,atk)
+        let best_eval = Self::minimax(board,atk,depth,board.side_to_move);
+        println!("best eval: {}",best_eval);
+        //Self::random_move(board,atk)
+        0
     }
     
     // minimax algorithm
     pub fn minimax(board:&mut Chessboard,atk:&AttackMasks,depth:u32,color:SIDES) -> i32 {
-        if depth == 0 || board.game_over() == true {
+        // We also need to consider the game ending
+        if depth == 0 {
             return evaluate(*board);
         }
         // Creating a generator object
@@ -32,12 +36,14 @@ impl Search {
         if color == SIDES::WHITE {
             let mut maxeval = -INF;
             let mut eval:i32 = 0;
+            let copy = generator.board.clone();
             for i in 0..generator.moves.count {
                 let legal = generator.make_move(generator.moves.list[i],move_type::ALL_MOVES);
                 if legal == true {
                     eval = Self::minimax(&mut generator.board,atk,depth-1,SIDES::BLACK);
                 }
                 maxeval = cmp::max(eval,maxeval); 
+                generator.board.restore_board(copy);
             }
             maxeval
         }
@@ -45,11 +51,13 @@ impl Search {
         else{
             let mut maxeval = INF;
             let mut eval:i32 = 0;
+            let copy = generator.board.clone();
             for i in 0..generator.moves.count {
                 let legal = generator.make_move(generator.moves.list[i],move_type::ALL_MOVES);
                 if legal == true {
                     eval = Self::minimax(&mut generator.board,atk,depth-1,SIDES::WHITE);
                 }
+                generator.board.restore_board(copy);
                 maxeval = cmp::min(eval,maxeval); 
             }
             maxeval
