@@ -173,10 +173,12 @@ pub fn go_handler(board:&mut Chessboard,atk:&AttackMasks,parts:&Vec<&str>) {
             "depth" => {
                 // getting the depth
                 let depth:u32 = parts[2].parse().unwrap();
-                let move_found = get_uci_move(Search::search_move(board,atk,depth));
-                // We need a function that converts a "Move" to a move the UCI can handle
-                // place holder
-                println!("bestmove {move_found}");
+                let search_result = Search::search_move(board,atk,depth);
+                // Here i wanted move controle over if something went wrong
+                match search_result {
+                    Some(mv) => println!("bestmove {}",get_uci_move(mv)),
+                    _ => println!("Error while searching for move , check 'go_handler'"),
+                }
             }
             "perft" => {
                 let depth:u32 = parts[2].parse().unwrap();

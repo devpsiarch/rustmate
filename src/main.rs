@@ -37,7 +37,7 @@ fn main() {
     attacks.load_attacks_maps();
     let mut chess = Chessboard::new();   
 
-    let dev = true;
+    let dev = false;
 
     // Then we are developing the engine
     if dev == true {
@@ -45,7 +45,13 @@ fn main() {
         chess.print_chessboard();
         println!("the value of this board : {}",evaluate(chess.clone())); 
         let start = Instant::now(); 
-        println!("best eval: {}",Search::minimax_alpha_beta(&mut chess.clone(),&attacks,6,-INF,INF,chess.side_to_move.clone()));
+        let (best_eval,bestmove) = Search::minimax_alpha_beta(&mut chess.clone(),&attacks,6,-INF,INF,chess.side_to_move.clone());
+        let mut accual_best:Move;
+        match bestmove {
+            Some(x) => accual_best = x,
+            None => accual_best = 0,
+        }
+        println!("best eval: {},best move: {}",best_eval,accual_best);
         println!("Time taken: {:.2?}",start.elapsed());
         return ;
         let start = Instant::now(); 

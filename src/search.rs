@@ -17,17 +17,20 @@ pub const INF:i32 = 1_000_000;
 
 pub struct Search;
 impl Search {
-    pub fn search_move(board:&mut Chessboard,atk:&AttackMasks,depth:u32) -> Move{
-        let best_eval = Self::minimax_alpha_beta(board,atk,depth,-INF,INF,board.side_to_move);
+    pub fn search_move(board:&mut Chessboard,atk:&AttackMasks,depth:u32) -> Option<Move>{
+        let (best_eval,bestmove) = Self::minimax_alpha_beta(board,atk,depth,-INF,INF,board.side_to_move);
         //Self::random_move(board,atk)
-        0
+        bestmove
     }
     
     // minimax algorithm
-    pub fn minimax_alpha_beta(board:&mut Chessboard,atk:&AttackMasks,depth:u32,mut alpha:i32,mut beta:i32,color:SIDES) -> i32 {
+    // we return instead 2 values , the bestmove and its eval
+    pub fn minimax_alpha_beta(
+        board:&mut Chessboard,atk:&AttackMasks,depth:u32,mut alpha:i32,mut beta:i32,color:SIDES)
+        -> (i32,Option<Move>) {
         // We also need to consider the game ending
         if depth == 0 {
-            return evaluate(*board);
+            return (evaluate(*board),None);
         }
         // Creating a generator object
         let mut generator = MoveGenerator::new(board,&atk);  
@@ -35,12 +38,17 @@ impl Search {
         // White wants to maximize the evaluation 
         if color == SIDES::WHITE {
             let mut maxeval = -INF;
-            let mut eval:i32 = 0;
+            let mut bestmove = None;
             let copy = generator.board.clone();
             for i in 0..generator.moves.count {
                 if generator.make_move(generator.moves.list[i],move_type::ALL_MOVES) {
-                    eval = Self::minimax_alpha_beta(&mut generator.board,atk,depth-1,alpha,beta,SIDES::BLACK);
-                    maxeval = cmp::max(eval,maxeval);
+                    // we dont care about the best move the oposite side might make
+                    let (eval,_) = Self::minimax_alpha_beta(&mut generator.board,atk,depth-1,alpha,beta,SIDES::BLACK);
+                    // a better move was found
+                    if eval > maxeval {
+                        maxeval = eval;
+                        bestmove = Some(generator.moves.list[i]);
+                    }
                     alpha = cmp::max(eval,alpha);
                     generator.board.restore_board(copy);
                     // pruning if we are sure we wont find better moves
@@ -49,17 +57,21 @@ impl Search {
                     }
                 }
             }
-            maxeval
+            (maxeval,bestmove)
         }
         // Black wants to minimize the evaluation
         else{
             let mut minval = INF;
-            let mut eval:i32 = 0;
+            let mut bestmove = None;
             let copy = generator.board.clone();
             for i in 0..generator.moves.count {
                 if generator.make_move(generator.moves.list[i],move_type::ALL_MOVES) {
-                    eval = Self::minimax_alpha_beta(&mut generator.board,atk,depth-1,alpha,beta,SIDES::WHITE);
-                    minval = cmp::min(eval,minval); 
+                    // again we dont care about the best moves the opponante migh make
+                    let (eval,_) = Self::minimax_alpha_beta(&mut generator.board,atk,depth-1,alpha,beta,SIDES::WHITE);
+                    if eval < minval {
+                        minval = eval;
+                        bestmove = Some(generator.moves.list[i]);
+                    }
                     beta = cmp::min(eval,beta); 
                     generator.board.restore_board(copy);
                     // pruning
@@ -68,15 +80,15 @@ impl Search {
                     }
                 }
             }
-            minval
+            (minval,bestmove)
         }
     }
-       
     // This is the move searchers that will be here
-    pub fn random_move(board:&mut Chessboard,atk:&AttackMasks) -> Move {
+    #[allow(dead_code)] 
+    pub fn random_move(board:&mut Chessboard,atk:&AttackMasks) -> Option<Move> {
         let mut rng = thread_rng();
         let mut generator = MoveGenerator::new(board,atk);
         generator.generate_moves();
-        generator.moves.list[rng.gen_range(0..generator.moves.count) as usize]
+        Some(generator.moves.list[rng.gen_range(0..generator.moves.count) as usize])
     }
 }
