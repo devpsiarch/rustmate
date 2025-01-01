@@ -95,27 +95,18 @@ impl<'a> MoveGenerator<'a> {
                 
                 // Now going though all the cases of the move and making the move accordingly 
                 // Checking if the move happens to be a capture
-                if capture == true {
-                    let start:usize;
-                    let end:usize;
-                    // Setting up which side are we capturing 
-                    match self.board.side_to_move {
-                        SIDES::WHITE => {
-                            start = Pieces::p;
-                            end = Pieces::k;
-                        }
-                        SIDES::BLACK => {
-                            start = Pieces::P;
-                            end = Pieces::K;
-                        }
-                    }
-                    // searching who got capture and poping him from the board
-                    for i in start..=end {
-                        if get_bit!(self.board.bitboards[i],dst) != 0 {
-                            pop_bit!(self.board.bitboards[i],dst);
-                            break; 
-                            // we break here because we assumse only one piece can be in a square
-                            // at time
+                if capture {
+                    // Determine the piece range for the side to move
+                    let (start, end) = match self.board.side_to_move {
+                        SIDES::WHITE => (Pieces::p, Pieces::k),
+                        SIDES::BLACK => (Pieces::P, Pieces::K),
+                    };
+
+                    // Search for the captured piece and remove it
+                    for piece in start..=end {
+                        if get_bit!(self.board.bitboards[piece], dst) != 0 {
+                            pop_bit!(self.board.bitboards[piece], dst);
+                            //break; // Only one piece can occupy a square
                         }
                     }
                 }
@@ -128,7 +119,7 @@ impl<'a> MoveGenerator<'a> {
                     }
                     // replace it with the promoted piece
                     set_bit!(self.board.bitboards[promo],dst);
-                }
+                //}
                 // Checking if the move is enpassant
                 if enpassant == true {
                      match self.board.side_to_move {
@@ -206,6 +197,8 @@ impl<'a> MoveGenerator<'a> {
                         king = Pieces::K; 
                     }
                 }
+                // if no kings are on the board the program panics , either hanlde it here 
+                // or always have kings chilling on the board
                 if self.square_attacked(self.board.side_to_move.clone(),get_lsb(self.board.bitboards[king]) as u8) == true {
                     // The move is not legal then f this and restore the previous board
                     // What this means is that the move is not made if its not legal

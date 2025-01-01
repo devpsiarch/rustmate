@@ -1,13 +1,17 @@
+use std::env;
+
+
 mod chessboard;
 use chessboard::{Chessboard};
 use crate::chessboard::bitboard;
 use crate::chessboard::attacks;
 use crate::chessboard::defs;
 use crate::chessboard::magic;
-use crate::defs::{FenPositions};
+use crate::defs::{FenPositions,SQUARE,Pieces,SIDES};
 
 
 mod movegen;
+use crate::movegen::MoveGenerator;
 use crate::movegen::movecode::{Move,MoveMask};
 use crate::movegen::movelist::{MoveList};
 //i am using these here just for testing future me , take them down when everything is set
@@ -32,7 +36,8 @@ use std::time::Instant;
 use crate::search::{Search,INF};
 //i will be running tests here untile everything is set and done
 fn main() {
-     // init the ATTACK tables , sooner we will replace this with an instance that will do everything
+    env::set_var("RUST_BACKTRACE", "1");    // for debugging
+    // init the ATTACK tables , sooner we will replace this with an instance that will do everything
     let mut attacks = attacks::AttackMasks::new();
     attacks.load_attacks_maps();
     let mut chess = Chessboard::new();   
@@ -41,8 +46,19 @@ fn main() {
 
     // Then we are developing the engine
     if dev == true {
-        chess.init_board("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
+        chess.init_board(FenPositions::EMPTY_BOARD);
+        chess.spawn_piece(Pieces::n,SQUARE::e7);
+        chess.spawn_piece(Pieces::P,SQUARE::f5);
+        chess.spawn_piece(Pieces::K,SQUARE::a8);
+        chess.spawn_piece(Pieces::k,SQUARE::a1);
+        chess.side_to_move = SIDES::BLACK;
+        let mut generator = MoveGenerator::new(&mut chess,&attacks);
+        generator.generate_moves();
+        generator.moves.print_all_moves();
+        generator.make_move(generator.moves.list[8],move_type::ALL_MOVES);
         chess.print_chessboard();
+
+        return;
         println!("the value of this board : {}",evaluate(chess.clone())); 
         let start = Instant::now(); 
         let (best_eval,bestmove) = Search::minimax_alpha_beta(&mut chess.clone(),&attacks,6,-INF,INF,chess.side_to_move.clone());

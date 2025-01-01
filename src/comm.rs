@@ -6,7 +6,9 @@ pub mod parse;
 
 use crate::Chessboard;
 use crate::chessboard::attacks::AttackMasks;
+use crate::chessboard::bitboard::print_bitboard;
 
+use crate::movegen::MoveGenerator;
 
 use std::io;
 use std::io::{Write,stdout,BufRead};
@@ -48,6 +50,17 @@ pub fn uci(board:&mut Chessboard,atk:&AttackMasks) -> UciExitStatus {
                 else if buffer == "ucinewgame" {
                     let temp = vec!["position","startpos"];
                     position_handler(board,atk,&temp);
+                }
+                // for debuging this shit
+                else if buffer == "show_ocp" {
+                    print_bitboard(&board.occupencies[0]);
+                    print_bitboard(&board.occupencies[1]);
+                    print_bitboard(&board.occupencies[2]);
+                }
+                else if buffer == "show_moves" {
+                    let mut generator = MoveGenerator::new(board,atk);
+                    generator.generate_moves();
+                    generator.moves.print_all_moves();
                 }
                 // Handling the commands happends here 
                 // Getting the parts of the command 

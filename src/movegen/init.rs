@@ -103,6 +103,9 @@ impl<'a> MoveGenerator<'_> {
         match self.board.side_to_move {
             SIDES::WHITE => {
                 bitboard = self.board.bitboards[Pieces::P];
+                if bitboard == 0 {
+                    return;
+                }
                 let mut src:i8;
                 let mut dst:i8;
                 while bitboard != 0 {
@@ -177,6 +180,9 @@ impl<'a> MoveGenerator<'_> {
             }
             SIDES::BLACK => {
                 bitboard = self.board.bitboards[Pieces::p];
+                if bitboard == 0 {
+                    return;
+                }
                 let mut src:i8;
                 let mut dst:i8;
                 while bitboard != 0 {
@@ -319,6 +325,9 @@ impl<'a> MoveGenerator<'_> {
             SIDES::WHITE => {
                 // Here we assume that there exists only one king in the whole board which is true 
                 // WARNING : HAVING MORE KINGS FOR EXPIREMENTATION REQUESTS A CHANGE HERE !!!
+                if self.board.bitboards[Pieces::K] == 0 {
+                    return;
+                }
                 let src:usize = get_lsb(self.board.bitboards[Pieces::K]) as usize;
                 // "I trusted you king ..." just checking for friendly fire
                 atk = self.attacks.king_attack_masks[src] & !self.board.occupencies[COLOR::w];
@@ -344,10 +353,16 @@ impl<'a> MoveGenerator<'_> {
             SIDES::BLACK => {
                 // Here we assume that there exists only one king in the whole board which is true 
                 // WARNING : HAVING MORE KINGS FOR EXPIREMENTATION REQUESTS A CHANGE HERE !!!
+                if self.board.bitboards[Pieces::k] == 0 {
+                    return;
+                }
                 let src:usize = get_lsb(self.board.bitboards[Pieces::k]) as usize;
                 // Why so much comment you ask ? well cur am an idiot and will forget what each
                 // line do , bear with me ... again , i dont want friendly KIA
                 atk = self.attacks.king_attack_masks[src] & !self.board.occupencies[COLOR::b];
+                if atk == 0 {
+                    return ;
+                }
                 let mut dst:u8;
                 while atk != 0 {
                     dst = get_lsb(atk);
@@ -378,6 +393,9 @@ impl<'a> MoveGenerator<'_> {
         match self.board.side_to_move {
             SIDES::WHITE => {
                 bitboard = self.board.bitboards[Pieces::N];
+                if bitboard == 0 {
+                    return;
+                }
                 let mut src:u8;
                 while bitboard != 0 {
                     src = get_lsb(bitboard);
@@ -405,6 +423,9 @@ impl<'a> MoveGenerator<'_> {
             }
             SIDES::BLACK => {
                 bitboard = self.board.bitboards[Pieces::n];
+                if bitboard == 0 {
+                    return;
+                }
                 let mut src:u8;
                 while bitboard != 0 {
                     src = get_lsb(bitboard);
@@ -439,6 +460,9 @@ impl<'a> MoveGenerator<'_> {
         match self.board.side_to_move {
             SIDES::WHITE => {
                 bitboard = self.board.bitboards[Pieces::B];
+                if bitboard == 0 {
+                    return;
+                }
                 let mut src:u8;
                 while bitboard != 0 {
                     src = get_lsb(bitboard);
@@ -464,6 +488,9 @@ impl<'a> MoveGenerator<'_> {
             }
             SIDES::BLACK => {
                 bitboard = self.board.bitboards[Pieces::b];
+                if bitboard == 0 {
+                    return;
+                }
                 let mut src:u8;
                 while bitboard != 0 {
                     src = get_lsb(bitboard);
@@ -496,6 +523,9 @@ impl<'a> MoveGenerator<'_> {
         match self.board.side_to_move {
             SIDES::WHITE => {
                 bitboard = self.board.bitboards[Pieces::R];
+                if bitboard == 0 {
+                    return;
+                }
                 let mut src:u8;
                 while bitboard != 0 {
                     src = get_lsb(bitboard);
@@ -521,6 +551,9 @@ impl<'a> MoveGenerator<'_> {
             }
             SIDES::BLACK => {
                 bitboard = self.board.bitboards[Pieces::r];
+                if bitboard == 0 {
+                    return;
+                }
                 let mut src:u8;
                 while bitboard != 0 {
                     src = get_lsb(bitboard);
@@ -553,6 +586,9 @@ impl<'a> MoveGenerator<'_> {
         match self.board.side_to_move {
             SIDES::WHITE => {
                 bitboard = self.board.bitboards[Pieces::Q];
+                if bitboard == 0 {
+                    return;
+                }
                 let mut src:u8;
                 while bitboard != 0 {
                     src = get_lsb(bitboard);
@@ -578,6 +614,9 @@ impl<'a> MoveGenerator<'_> {
             }
             SIDES::BLACK => {
                 bitboard = self.board.bitboards[Pieces::q];
+                if bitboard == 0 {
+                    return;
+                }
                 let mut src:u8;
                 while bitboard != 0 {
                     src = get_lsb(bitboard);
