@@ -6,7 +6,7 @@ use crate::movegen::MoveGenerator;
 use crate::Chessboard;
 use crate::attacks::AttackMasks;
 use crate::movegen::movecode::Move;
-use crate::chessboard::defs::{SIDES};
+use crate::chessboard::defs::{SIDES,Pieces};
 use crate::evalu::{evaluate};
 use rand::{thread_rng, Rng};
 use std::cmp;
@@ -18,7 +18,7 @@ pub const INF:i32 = 1_000_000;
 pub struct Search;
 impl Search {
     pub fn search_move(board:&mut Chessboard,atk:&AttackMasks,depth:u32) -> Option<Move>{
-        let (best_eval,bestmove) = Self::minimax_alpha_beta(board,atk,depth,-INF,INF,board.side_to_move);
+        let (_best_eval,bestmove) = Self::minimax_alpha_beta(board,atk,depth,-INF,INF,board.side_to_move);
         //Self::random_move(board,atk)
         bestmove
     }
@@ -35,6 +35,14 @@ impl Search {
         // Creating a generator object
         let mut generator = MoveGenerator::new(board,&atk);  
         generator.generate_moves();
+        
+        // checking if the game ended 
+        if generator.check_mate() {
+            return (-(INF-1000),None); 
+        }
+        if generator.stale_mate() {
+            return (0,None);
+        }
         // White wants to maximize the evaluation 
         if color == SIDES::WHITE {
             let mut maxeval = -INF;

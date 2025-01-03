@@ -111,7 +111,7 @@ impl<'a> MoveGenerator<'a> {
                     }
                 }
                 // Checking if the piece got promoted 
-                if promo != Pieces::NONE as usize{
+                if promo != Pieces::NONE as usize {
                     // pop the pawn that got promoted
                     match self.board.side_to_move {
                         SIDES::WHITE => pop_bit!(self.board.bitboards[Pieces::P],dst),
@@ -119,7 +119,7 @@ impl<'a> MoveGenerator<'a> {
                     }
                     // replace it with the promoted piece
                     set_bit!(self.board.bitboards[promo],dst);
-                //}
+                }
                 // Checking if the move is enpassant
                 if enpassant == true {
                      match self.board.side_to_move {
@@ -221,4 +221,31 @@ impl<'a> MoveGenerator<'a> {
             } 
         }
     } 
+    // the functions below assume that the moves already has been generated
+    pub fn check_mate(&mut self) -> bool {
+        // this assumes only one king on a board (only on accual games)
+        let (king,enemy) = match self.board.side_to_move { 
+            SIDES::WHITE => (
+                get_lsb(self.board.bitboards[Pieces::K]),
+                SIDES::BLACK,
+            ),
+            SIDES::BLACK => (
+                get_lsb(self.board.bitboards[Pieces::k]),
+                SIDES::WHITE,
+            ),
+        };
+        // we loop through the moves (which are not a lot trust me ... i hope)
+        // and if any of these moves are legal (using the make_move methode) this way we eleminate
+        // any chance of errors .... i hope ... why did i code this this way ?
+        for i in 0..self.moves.count {
+            if self.make_move(self.moves.list[i],move_type::ALL_MOVES) == true {
+                return true;
+            }
+        }
+        false
+    }
+    // shut up ... this way it looks pretty ;)
+    pub fn stale_mate(&self) -> bool {
+        return if self.moves.count == 0 {true} else {false};
+    }
 }

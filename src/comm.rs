@@ -62,11 +62,20 @@ pub fn uci(board:&mut Chessboard,atk:&AttackMasks) -> UciExitStatus {
                     generator.generate_moves();
                     generator.moves.print_all_moves();
                 }
+                else if buffer == "show_board" {
+                    board.print_chessboard();
+                }
                 // Handling the commands happends here 
                 // Getting the parts of the command 
                 let parts: Vec<&str> = buffer.split(" ").collect();
                 match parts[0] {
-                    "position" => position_handler(board,atk,&parts),
+                    "position" => {
+                        if position_handler(board,atk,&parts) == false {
+                            // the game has ended
+                            println!("gameover");
+                            return Ok(());
+                        }
+                    }
                     "go" => go_handler(board,atk,&parts),
                     _ => {
                         // We dont exit when encortering unreconised command

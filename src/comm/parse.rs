@@ -89,8 +89,9 @@ pub fn parse_move(generator:&mut MoveGenerator,move_str:&str) -> Move{
     }
     0
 }
-// Here we define the "position" function handler
-pub fn position_handler(board:&mut Chessboard,atk:&AttackMasks,parts:&Vec<&str>) {
+// Here we define the "position" function Handler
+// it returns a bool for the game state , either he game as ended or not
+pub fn position_handler(board:&mut Chessboard,atk:&AttackMasks,parts:&Vec<&str>) -> bool {
     let mut moves_index :usize = 0;
     match parts[1] {
         // We just init the start position then read the move
@@ -126,8 +127,9 @@ pub fn position_handler(board:&mut Chessboard,atk:&AttackMasks,parts:&Vec<&str>)
     // Now here we handle the moves and make them on the board
     // First we check if the "moves_index" is accualy pointing to a "moves" string
     if parts[moves_index] != "moves" {
-        board.print_chessboard();
-        return ;
+        // might ness up the UCI
+        //board.print_chessboard();
+        return true;
     }
     // else we get the moves in a vector and make them if they are : availble and legal 
     let moves_set = &parts[(moves_index+1)..];
@@ -137,13 +139,18 @@ pub fn position_handler(board:&mut Chessboard,atk:&AttackMasks,parts:&Vec<&str>)
         // mov.parse().decode().seach_in_generator() if found => make it : ignore it
         // println!("move is {mov}");
         generator.generate_moves();
+        if generator.check_mate() || generator.stale_mate() {
+            // this indectes that the game has ended
+            return false;
+        }
         let mv = parse_move(&mut generator,mov);
         // Getting the move failed for some reason , we dont care
         if mv != 0 {
             generator.make_move(mv,ALL_MOVES);
         }
     }
-    board.print_chessboard();
+    //board.print_chessboard();
+    true
 }
 
 // a function converts a Move to a uci move
