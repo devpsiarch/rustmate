@@ -206,6 +206,7 @@ impl<'a> MoveGenerator<'a> {
                     return false;
                 }
                 else {
+                    // if the move is legal , the move is made and board is updated
                     return true; 
                 }    
             }
@@ -222,7 +223,7 @@ impl<'a> MoveGenerator<'a> {
         }
     } 
     // the functions below assume that the moves already has been generated
-    pub fn check_mate(&mut self) -> bool {
+    pub fn check_mate(&self) -> bool {
         // this assumes only one king on a board (only on accual games)
         let (king,enemy) = match self.board.side_to_move { 
             SIDES::WHITE => (
@@ -234,15 +235,12 @@ impl<'a> MoveGenerator<'a> {
                 SIDES::WHITE,
             ),
         };
-        // we loop through the moves (which are not a lot trust me ... i hope)
-        // and if any of these moves are legal (using the make_move methode) this way we eleminate
-        // any chance of errors .... i hope ... why did i code this this way ?
-        for i in 0..self.moves.count {
-            if self.make_move(self.moves.list[i],move_type::ALL_MOVES) == true {
-                return true;
-            }
+        if self.square_attacked(enemy,king) == true && self.moves.list.is_empty() {
+            true
         }
-        false
+        else {
+            false
+        }
     }
     // shut up ... this way it looks pretty ;)
     pub fn stale_mate(&self) -> bool {

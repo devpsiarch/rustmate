@@ -69,13 +69,7 @@ pub fn uci(board:&mut Chessboard,atk:&AttackMasks) -> UciExitStatus {
                 // Getting the parts of the command 
                 let parts: Vec<&str> = buffer.split(" ").collect();
                 match parts[0] {
-                    "position" => {
-                        if position_handler(board,atk,&parts) == false {
-                            // the game has ended
-                            println!("gameover");
-                            return Ok(());
-                        }
-                    }
+                    "position" => position_handler(board,atk,&parts),
                     "go" => go_handler(board,atk,&parts),
                     _ => {
                         // We dont exit when encortering unreconised command

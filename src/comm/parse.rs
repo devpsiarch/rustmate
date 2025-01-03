@@ -91,7 +91,7 @@ pub fn parse_move(generator:&mut MoveGenerator,move_str:&str) -> Move{
 }
 // Here we define the "position" function Handler
 // it returns a bool for the game state , either he game as ended or not
-pub fn position_handler(board:&mut Chessboard,atk:&AttackMasks,parts:&Vec<&str>) -> bool {
+pub fn position_handler(board:&mut Chessboard,atk:&AttackMasks,parts:&Vec<&str>) {
     let mut moves_index :usize = 0;
     match parts[1] {
         // We just init the start position then read the move
@@ -129,7 +129,7 @@ pub fn position_handler(board:&mut Chessboard,atk:&AttackMasks,parts:&Vec<&str>)
     if parts[moves_index] != "moves" {
         // might ness up the UCI
         //board.print_chessboard();
-        return true;
+        return ;
     }
     // else we get the moves in a vector and make them if they are : availble and legal 
     let moves_set = &parts[(moves_index+1)..];
@@ -138,11 +138,8 @@ pub fn position_handler(board:&mut Chessboard,atk:&AttackMasks,parts:&Vec<&str>)
     for mov in moves_set {
         // mov.parse().decode().seach_in_generator() if found => make it : ignore it
         // println!("move is {mov}");
+        // remember , we are getting the pseudo legl moves here
         generator.generate_moves();
-        if generator.check_mate() || generator.stale_mate() {
-            // this indectes that the game has ended
-            return false;
-        }
         let mv = parse_move(&mut generator,mov);
         // Getting the move failed for some reason , we dont care
         if mv != 0 {
@@ -150,7 +147,6 @@ pub fn position_handler(board:&mut Chessboard,atk:&AttackMasks,parts:&Vec<&str>)
         }
     }
     //board.print_chessboard();
-    true
 }
 
 // a function converts a Move to a uci move
@@ -184,6 +180,7 @@ pub fn go_handler(board:&mut Chessboard,atk:&AttackMasks,parts:&Vec<&str>) {
                 // Here i wanted move controle over if something went wrong
                 match search_result {
                     Some(mv) => println!("bestmove {}",get_uci_move(mv)),
+                    None => println!("gameover"),
                     _ => println!("Error while searching for move , check 'go_handler'"),
                 }
             }
