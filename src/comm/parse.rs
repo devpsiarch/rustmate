@@ -87,7 +87,7 @@ pub fn parse_move(generator:&mut MoveGenerator,move_str:&str) -> Move{
             }
         }
     }
-    0
+    0 
 }
 // Here we define the "position" function Handler
 // it returns a bool for the game state , either he game as ended or not
@@ -143,7 +143,9 @@ pub fn position_handler(board:&mut Chessboard,atk:&AttackMasks,parts:&Vec<&str>)
         let mv = parse_move(&mut generator,mov);
         // Getting the move failed for some reason , we dont care
         if mv != 0 {
-            generator.make_move(mv,ALL_MOVES);
+            if !generator.make_move(mv,ALL_MOVES) {
+                println!("move {mov} not made ...");
+            }
         }
     }
     //board.print_chessboard();

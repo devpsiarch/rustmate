@@ -54,6 +54,8 @@ impl<'a> MoveGenerator<'a> {
     }
     // We wont change Self here no matter what , this only and only gets us the moves
     pub fn generate_moves(&mut self) {
+        // Untile now i rememeber that i might wanna reset the array of moves ... what a dummy
+        self.moves = MoveList::new(); 
         self.generate_pawn_moves();
         self.generate_castle_moves();
         self.generate_king_moves();
@@ -221,7 +223,7 @@ impl<'a> MoveGenerator<'a> {
                 }
             } 
         }
-    } 
+    }  
     // the functions below assume that the moves already has been generated
     pub fn check_mate(&self) -> bool {
         // this assumes only one king on a board (only on accual games)

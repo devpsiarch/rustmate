@@ -38,7 +38,8 @@ impl Search {
         
         // checking if the game ended 
         if generator.check_mate() {
-            return (-(INF-1000),None); 
+            return (-(INF-1000),None);  // i think sending Some(mate) is better to know what the
+            // hell happended 
         }
         if generator.stale_mate() {
             return (0,None);
