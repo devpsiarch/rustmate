@@ -183,7 +183,8 @@ pub fn go_handler(board:&mut Chessboard,atk:&AttackMasks,parts:&Vec<&str>) {
                 match search_result {
                     Some(mv) => println!("bestmove {}",get_uci_move(mv)),
                     None => println!("gameover"),
-                    _ => println!("Error while searching for move , check 'go_handler'"),
+                    // unreachable for now , but i might change it in context of mating
+                    //_ => println!("Error while searching for move , check 'go_handler'"),
                 }
             }
             "perft" => {

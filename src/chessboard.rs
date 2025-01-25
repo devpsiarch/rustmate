@@ -105,10 +105,4 @@ impl Chessboard {
     pub fn reset_occupencies(&mut self) {
         self.occupencies = [0;3];
     }
-    pub fn switch_side(&mut self) {
-        match self.side_to_move {
-            SIDES::WHITE => self.side_to_move = SIDES::BLACK,
-            SIDES::BLACK => self.side_to_move = SIDES::WHITE,
-        }
-    }
 }
