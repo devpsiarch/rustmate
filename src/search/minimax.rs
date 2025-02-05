@@ -19,7 +19,8 @@ impl Search {
         // We also need to consider the game ending
         if depth == 0 {
             // Quinsearch also looks for checks as well as captures
-            return (evaluate(*board),None);
+            let eval = Self::quite_search(board,atk,alpha,beta,ply);
+            return (eval,None); 
         }
         // Creating a generator object
         let mut generator = MoveGenerator::new(board,&atk);  

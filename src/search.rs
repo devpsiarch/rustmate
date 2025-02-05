@@ -11,14 +11,17 @@ use rand::{thread_rng, Rng};
 pub const INF:i32 = 50_000; 
 // wanted to use the max int value but it may cause overflow if not handled
 pub mod minimax;
-
+pub mod quitesearch;
 pub struct Search;
 impl Search {
+    // This methode will return the move (if found) and a status that indicates 
+    // * what this move is ? (Checkmate/stalemate or just a regulate move)
+    // * if finding move process failed for any reason (which is not supposed to happen btw)
     pub fn search_move(board:&mut Chessboard,atk:&AttackMasks,depth:u32) -> Option<Move>{
         // This will stores the moves already made when we are searching
         let mut ply:i32 = 0; 
-        let (_best_eval,bestmove) = Self::minimax_alpha_beta(board,atk,depth,-INF,INF,board.side_to_move,&mut ply);
-        //Self::random_move(board,atk)
+        // this will change the bestmoves while doing down the tree , 
+        let (_eval,bestmove) = Self::minimax_alpha_beta(board,atk,depth,-INF,INF,board.side_to_move,&mut ply); 
         bestmove
     }
 

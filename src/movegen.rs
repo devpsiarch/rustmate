@@ -108,7 +108,7 @@ impl<'a> MoveGenerator<'a> {
                     for piece in start..=end {
                         if get_bit!(self.board.bitboards[piece], dst) != 0 {
                             pop_bit!(self.board.bitboards[piece], dst);
-                            //break; // Only one piece can occupy a square
+                            break; // Only one piece can occupy a square
                         }
                     }
                 }
@@ -215,7 +215,8 @@ impl<'a> MoveGenerator<'a> {
             // Its is said that we do this to avoid the "Horizon effect" , idk why this would help
             // but hey 
             move_type::CAPTURE_MOVE => {
-                if get_move_capture!(mv) == 1 {
+                if get_move_capture!(mv) != 0 {
+                    // Thus , it is a capture move
                     return self.make_move(mv,move_type::ALL_MOVES);
                 }
                 else {

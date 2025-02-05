@@ -47,16 +47,18 @@ fn main() {
     // Then we are developing the engine
     if dev == true {
         chess.init_board(FenPositions::KILLER_POSITION);
+        
         let mut generator = MoveGenerator::new(&mut chess,&attacks);
         generator.generate_moves();
+        
         generator.moves.print_all_moves();
-        generator.make_move(generator.moves.list[13],move_type::ALL_MOVES);
-        chess.print_chessboard();
-        print_bitboard(&chess.occupencies[0]);
-        print_bitboard(&chess.occupencies[1]);
-        print_bitboard(&chess.occupencies[2]);
-        if chess.occupencies[0] | chess.occupencies[1] != chess.occupencies[2] {
-            print!("JKZFHBGZERUFGUZEYGFUEFGUH");
+        for i in 0..generator.moves.count {
+            let copy = generator.board.clone();
+            if generator.make_move(generator.moves.list[i],move_type::CAPTURE_MOVE) {
+                println!("atk move here");
+                generator.board.restore_board(copy);
+            }
+
         }
         return;
         println!("the value of this board : {}",evaluate(chess.clone())); 
