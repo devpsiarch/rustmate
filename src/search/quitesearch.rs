@@ -1,13 +1,9 @@
 use crate::movegen::MoveGenerator;
 use crate::Chessboard;
 use crate::attacks::AttackMasks;
-use crate::movegen::movecode::Move;
-use crate::chessboard::defs::{SIDES};
 use crate::evalu::{evaluate};
-use std::cmp;
 use crate::move_type; 
 use crate::Search;
-use crate::search::minimax::INF;
 // We will consider this as the infinity value
 
 impl Search {

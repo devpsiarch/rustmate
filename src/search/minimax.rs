@@ -3,7 +3,6 @@ use crate::Chessboard;
 use crate::attacks::AttackMasks;
 use crate::movegen::movecode::Move;
 use crate::chessboard::defs::{SIDES};
-use crate::evalu::{evaluate};
 use std::cmp;
 use crate::move_type; 
 use crate::Search;
@@ -15,12 +14,12 @@ impl Search {
     // we return instead 2 values , the bestmove and its eval
     pub fn minimax_alpha_beta(
         board:&mut Chessboard,atk:&AttackMasks,depth:u32,mut alpha:i32,mut beta:i32,color:SIDES,ply:&mut i32)
-        -> (i32,Option<Move>) {
+        -> (i32,Move) {
         // We also need to consider the game ending
         if depth == 0 {
             // Quinsearch also looks for checks as well as captures
             let eval = Self::quite_search(board,atk,alpha,beta,ply);
-            return (eval,None); 
+            return (eval,0); 
         }
         // Creating a generator object
         let mut generator = MoveGenerator::new(board,&atk);  
@@ -28,16 +27,16 @@ impl Search {
         
         // checking if the game ended 
         if generator.check_mate() {
-            return (-INF+*ply,None);  // i think sending Some(mate) is better to know what the
+            return (-INF+*ply,0);  // i think sending Some(mate) is better to know what the
             // hell happended 
         }
         if generator.stale_mate() {
-            return (0,None);
+            return (0,0);
         }
         // White wants to maximize the evaluation 
         if color == SIDES::WHITE {
             let mut maxeval = -INF;
-            let mut bestmove = None;
+            let mut bestmove = 0;
             let copy = generator.board.clone();
             *ply += 1;
             for i in 0..generator.moves.count {
@@ -48,7 +47,7 @@ impl Search {
                     // a better move was found
                     if eval > maxeval {
                         maxeval = eval;
-                        bestmove = Some(generator.moves.list[i]);
+                        bestmove = generator.moves.list[i];
                     }
                     alpha = cmp::max(eval,alpha);
                     generator.board.restore_board(copy);
@@ -63,7 +62,7 @@ impl Search {
         // Black wants to minimize the evaluation
         else{
             let mut minval = INF;
-            let mut bestmove = None;
+            let mut bestmove = 0;
             let copy = generator.board.clone();
             *ply += 1;
             for i in 0..generator.moves.count {
@@ -73,7 +72,7 @@ impl Search {
                     *ply -= 1;
                     if eval < minval {
                         minval = eval;
-                        bestmove = Some(generator.moves.list[i]);
+                        bestmove = generator.moves.list[i];
                     }
                     beta = cmp::min(eval,beta); 
                     generator.board.restore_board(copy);
