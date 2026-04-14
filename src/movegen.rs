@@ -226,6 +226,7 @@ impl<'a> MoveGenerator<'a> {
         }
     }  
     // the functions below assume that the moves already has been generated
+    #[allow(dead_code)] 
     pub fn check_mate(&self) -> bool {
         // this assumes only one king on a board (only on accual games)
         let (king,enemy) = match self.board.side_to_move { 

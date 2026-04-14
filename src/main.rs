@@ -7,8 +7,7 @@ use crate::chessboard::bitboard;
 use crate::chessboard::attacks;
 use crate::chessboard::defs;
 use crate::chessboard::magic;
-use crate::defs::{FenPositions,SQUARE,Pieces,SIDES};
-use crate::chessboard::bitboard::{print_bitboard};
+use crate::defs::{FenPositions,SIDES};
 
 mod movegen;
 use crate::movegen::MoveGenerator;
@@ -33,8 +32,9 @@ use crate::evalu::evaluate;
 use crate::movegen::{move_type};
 use std::time::Instant;
 
-use crate::search::{Search,INF};
+use crate::search::{Search};
 //i will be running tests here untile everything is set and done
+#[allow(unreachable_code)]
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");    // for debugging
     // init the ATTACK tables , sooner we will replace this with an instance that will do everything

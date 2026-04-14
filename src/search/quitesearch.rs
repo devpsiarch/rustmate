@@ -6,11 +6,12 @@ use crate::move_type;
 use crate::Search;
 // We will consider this as the infinity value
 
+#[allow(dead_code)] 
 impl Search {
     // minimax algorithm
     // This already takes the best move found so far , it may change or not if found some better
     pub fn quite_search(
-        board:&mut Chessboard,atk:&AttackMasks,mut alpha:i32,mut beta:i32,ply:&mut i32)
+        board:&mut Chessboard,atk:&AttackMasks,mut alpha:i32,beta:i32,ply:&mut i32)
         -> i32 {
         let eval = evaluate(*board);
         if eval >= beta {
@@ -31,7 +32,7 @@ impl Search {
                 *ply -=1;
                 continue;
             }
-            let mut score = -Self::quite_search(&mut generator.board,atk,-beta,-alpha,ply); 
+            let score = -Self::quite_search(&mut generator.board,atk,-beta,-alpha,ply); 
             *ply -= 1;
             generator.board.restore_board(copy);
             if score >= beta {
