@@ -2,12 +2,12 @@ pub mod init;
 pub mod movecode;
 pub mod movelist;
 pub mod perft;
-use crate::Chessboard;
+use crate::{Chessboard,MoveMask};
 use crate::attacks::AttackMasks;
 use crate::{MoveList};
 // Am not sure about the below code , but F it ill do this if i get headache ill fix the damn thing 
 // Petition : maybe ill include a Vec in the MoveGenerator to store the moves
-
+use crate::chessboard::defs::{SQUARE_NAME,UNICODE_PIECES,Pieces};
 use crate::{
     get_move_dst,
     get_move_src,
@@ -18,9 +18,11 @@ use crate::{
     get_move_doublejump,
     get_move_enpassant,
 };
-use crate::MoveMask;
-use crate::chessboard::defs::{SQUARE,Pieces,SIDES,CASTLING_RIGHTS_UPDATE,COLOR};
+
+use crate::chessboard::defs::{SQUARE,SIDES,CASTLING_RIGHTS_UPDATE,COLOR};
 use crate::Move;
+
+use crate::evalu::defs::PIECES_COST;
 
 use crate::chessboard::bitboard::{get_lsb};
 // In the make move function we have to handle the "Horizon effect" althou i am not very familliar
@@ -249,5 +251,65 @@ impl<'a> MoveGenerator<'a> {
     // shut up ... this way it looks pretty ;)
     pub fn stale_mate(&self) -> bool {
         return if self.moves.count == 0 {true} else {false};
+    }
+    // Pretty prints the moves , this is only for me to not go absolutly insane while trouble
+    // shooting
+    #[allow(dead_code)]
+    pub fn print_all_moves(&self) {
+        println!(
+        "{:<10}{:<10}{:<12}{:<12}{:<12}{:<12}{:<12}{:<12}",
+        "move", "piece", "promoted", "capture", "double", "enpass", "castling","eval"
+        );
+        for i in 0..self.moves.count {
+            let promoted = if get_move_promotion!(self.moves.list[i]) == Pieces::NONE {"NONE"} 
+            else {UNICODE_PIECES[get_move_promotion!(self.moves.list[i]) as usize]};
+           
+            println!("{:<4}{:<10}{:<10}{:<12}{:<12}{:<12}{:<12}{:<12}{:<12}",
+                i
+                ,SQUARE_NAME[get_move_src!(self.moves.list[i]) as usize].to_owned()+SQUARE_NAME[get_move_dst!(self.moves.list[i]) as usize]
+                ,UNICODE_PIECES[get_move_piece!(self.moves.list[i]) as usize]
+                ,promoted
+                ,get_move_capture!(self.moves.list[i])
+                ,get_move_doublejump!(self.moves.list[i])
+                ,get_move_enpassant!(self.moves.list[i])
+                ,get_move_castle!(self.moves.list[i])
+                ,self.evaluate_move(self.moves.list[i]));
+        }
+        println!("\n\t\t\tTotal moves : {}",self.moves.count);
+    }
+    pub fn evaluate_move(&self,_some_move:Move) -> f64 {
+        // for now evaluate based on MVV-LVA
+        if get_move_capture!(_some_move) != 0{
+            let mut victim_value = 0.0;
+            let mut agressor_value = 0.0;
+            let dst = get_move_dst!(_some_move);
+            let src = get_move_src!(_some_move);
+
+            for i in Pieces::P..=Pieces::k {
+                // match the bitboards with there dst 
+                // if they match get the evalution from the table of pices costs
+                if self.board.bitboards[i] & (1 << dst) != 0 {
+                    victim_value = PIECES_COST[i];
+                }
+                if self.board.bitboards[i] & ( 1 << src) != 0{
+                    agressor_value = PIECES_COST[i];
+                }
+                if agressor_value != 0.0 && victim_value != 0.0{
+                    break;
+                }
+            }
+            return (victim_value * 10.0 - agressor_value).abs();
+        }else{
+            return 0.0;
+        }
+    }
+
+    // a function that sorts the moves that have been generated
+    pub fn move_order(&mut self){
+        let mut stolen_list = std::mem::take(&mut self.moves.list);
+        
+        stolen_list.sort_by(|a,b| self.evaluate_move(*b).total_cmp(&self.evaluate_move(*a)));
+        
+        self.moves.list = stolen_list;
     }
 }

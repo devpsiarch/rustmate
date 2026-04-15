@@ -1,4 +1,7 @@
+use core::f64;
+
 use crate::SIDES;
+use crate::get_move_enpassant;
 use crate::movegen::MoveGenerator;
 use crate::Chessboard;
 use crate::attacks::AttackMasks;
@@ -14,8 +17,8 @@ impl Search {
     // Searches for moves in a different way then for each color , just for expiremntation ik ik i
     // cant spell
     fn negamax(
-        board:&mut Chessboard,atk:&AttackMasks,mut alpha:i32,beta:i32,
-    ply:i32,depth:u32) -> i32 {
+        board:&mut Chessboard,atk:&AttackMasks,mut alpha:f64,beta:f64,
+    ply:i32,depth:u32) -> f64 {
 
         // since we have define the evaluate as max for white and min for black
         // then we have to flip the signs 
@@ -30,11 +33,21 @@ impl Search {
         let mut generator = MoveGenerator::new(board, &atk);
         generator.generate_moves();
 
-        if generator.stale_mate() {
-            return 0;
+        if generator.check_mate() {
+            match generator.board.side_to_move {
+                SIDES::WHITE => {return -100_000.0}
+                SIDES::BLACK => {return 100_1000.0}
+            }
         }
 
-        let mut best_score = i32::MIN;
+        if generator.stale_mate() {
+            return 0.0;
+        }
+
+        // move ordering
+        generator.move_order();
+
+        let mut best_score = -f64::INFINITY;
     
         let board_cpy = generator.board.clone();
 
@@ -42,6 +55,7 @@ impl Search {
             if !generator.make_move(generator.moves.list[i],move_type::ALL_MOVES){
                 continue;
             }
+    
             let score = -Self::negamax(
                 &mut generator.board, atk, -beta, -alpha, ply + 1, depth - 1
             );
@@ -65,8 +79,8 @@ impl Search {
     }
     pub fn negamax_decision(board:&mut Chessboard,atk:&AttackMasks,depth:u32) -> Option<Move>{
         // This will stores the moves already made when we are searching
-        let mut bestmove:Move = 0;
-        let mut bestscore = i32::MIN;
+        let mut bestmove: Option<Move> = None;
+        let mut bestscore = -f64::INFINITY;
             
 
         let mut generator = MoveGenerator::new(board, &atk);
@@ -79,16 +93,16 @@ impl Search {
                 continue;
             }
             let score = -Self::negamax(
-                &mut generator.board, atk, i32::MIN,i32::MAX,1, depth
+                &mut generator.board, atk, -f64::INFINITY,f64::INFINITY,1, depth-1
             );
 
             if score > bestscore {
-                bestmove = generator.moves.list[i];
+                bestmove = Some(generator.moves.list[i]);
                 bestscore = score;
             }
 
             generator.board.restore_board(board_cpy);
         }
-        return Some(bestmove);
+        return bestmove;
     }
 }

@@ -60,7 +60,8 @@ pub fn uci(board:&mut Chessboard,atk:&AttackMasks) -> UciExitStatus {
                 else if buffer == "show_moves" {
                     let mut generator = MoveGenerator::new(board,atk);
                     generator.generate_moves();
-                    generator.moves.print_all_moves();
+                    generator.move_order();
+                    generator.print_all_moves();
                 }
                 else if buffer == "show_board" {
                     board.print_chessboard();

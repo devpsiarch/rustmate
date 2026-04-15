@@ -4,30 +4,39 @@ use crate::Chessboard;
 use crate::attacks::AttackMasks;
 use crate::movegen::movecode::Move;
 use crate::chessboard::defs::{SIDES};
-use std::{cmp, i32};
+use core::f64;
 use crate::move_type; 
 use crate::Search;
 
 impl Search {
     // minimax algorithm with alpha beta pruning
     fn minimax_alpha_beta(
-        board:&mut Chessboard,atk:&AttackMasks,depth:u32,mut alpha:i32,mut beta:i32,color:SIDES,ply:i32)
-        -> i32 {
+        board:&mut Chessboard,atk:&AttackMasks,depth:u32,mut alpha:f64,mut beta:f64,color:SIDES,ply:i32)
+        -> f64 {
         if depth == 0 {
             return evaluate(*board); 
         }
         // Creating a generator object
         let mut generator = MoveGenerator::new(board,&atk);  
         generator.generate_moves();
-        
-        if generator.stale_mate() {
-            return 0;
+ 
+        if generator.check_mate() {
+            match generator.board.side_to_move {
+                SIDES::WHITE => {return -100_000.0}
+                SIDES::BLACK => {return 100_1000.0}
+            }
         }
+
+        if generator.stale_mate() {
+            return 0.0;
+        }
+
+        generator.move_order();
 
         match color {
             // White wants to maximize the evaluation 
             SIDES::WHITE => {
-                let mut maxeval = i32::MIN;
+                let mut maxeval = -f64::INFINITY;
                 let copy = generator.board.clone();
                 for i in 0..generator.moves.count {
                     if generator.make_move(generator.moves.list[i],move_type::ALL_MOVES) {
@@ -37,7 +46,7 @@ impl Search {
                         if eval > maxeval {
                             maxeval = eval;
                         }
-                        alpha = cmp::max(eval,alpha);
+                        alpha = eval.max(alpha);
                         generator.board.restore_board(copy);
 
                         if alpha >= beta {
@@ -49,7 +58,7 @@ impl Search {
             }
             // Black wants to minimize the evaluation
             SIDES::BLACK => {
-                let mut minval = i32::MAX;
+                let mut minval = f64::INFINITY;
                 let copy = generator.board.clone();
                 for i in 0..generator.moves.count {
                     if generator.make_move(generator.moves.list[i],move_type::ALL_MOVES) {
@@ -58,7 +67,7 @@ impl Search {
                         if eval < minval {
                             minval = eval;
                         }
-                        beta = cmp::min(eval,beta); 
+                        beta = eval.max(beta); 
                         generator.board.restore_board(copy);
 
                         if alpha >= beta {
@@ -72,14 +81,14 @@ impl Search {
     }
     pub fn minimax_decision(board:&mut Chessboard,atk:&AttackMasks,depth:u32) -> Option<Move>{
         // This will stores the moves already made when we are searching
-        let mut bestmove:Move = 0;
+        let mut bestmove:Option<Move> = None;
         let mut bestscore = match board.side_to_move {
-            SIDES::WHITE => i32::MIN,
-            SIDES::BLACK => i32::MAX,
+            SIDES::WHITE => -f64::INFINITY,
+            SIDES::BLACK => f64::INFINITY,
         };
  
-        let mut alpha = i32::MIN;
-        let mut beta =  i32::MAX;
+        let mut alpha = -f64::INFINITY;
+        let mut beta = f64::INFINITY;
 
 
         let mut generator = MoveGenerator::new(board, &atk);
@@ -93,23 +102,23 @@ impl Search {
             }
 
             let score = Self::minimax_alpha_beta(
-                generator.board, atk, depth-1, i32::MIN, i32::MAX, generator.board.side_to_move, 1
+                generator.board, atk, depth-1, -f64::INFINITY, f64::INFINITY, generator.board.side_to_move, 1
             );
 
             match board_cpy.side_to_move {
                 SIDES::WHITE => {
                     if score > bestscore {
-                        bestmove = generator.moves.list[i];
+                        bestmove = Some(generator.moves.list[i]);
                         bestscore = score;
                     }
-                    alpha = cmp::max(alpha,score);
+                    alpha = alpha.max(score);
                 }
                 SIDES::BLACK => {
                     if score < bestscore {
-                        bestmove = generator.moves.list[i];
+                        bestmove = Some(generator.moves.list[i]);
                         bestscore = score;
                     }
-                    beta = cmp::min(beta,score);
+                    beta = beta.max(score);
                 }
             }
 
@@ -119,6 +128,6 @@ impl Search {
                 break;
             }
         }
-        return Some(bestmove);
+        return bestmove;
     }
 }

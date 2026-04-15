@@ -11,8 +11,8 @@ impl Search {
     // minimax algorithm
     // This already takes the best move found so far , it may change or not if found some better
     pub fn quite_search(
-        board:&mut Chessboard,atk:&AttackMasks,mut alpha:i32,beta:i32,ply:&mut i32)
-        -> i32 {
+        board:&mut Chessboard,atk:&AttackMasks,mut alpha:f64,beta:f64,ply:i32)
+        -> f64 {
         let eval = evaluate(*board);
         if eval >= beta {
             return beta;
@@ -27,13 +27,10 @@ impl Search {
        
         let copy = generator.board.clone();
         for i in 0..generator.moves.count {
-            *ply += 1;
             if !generator.make_move(generator.moves.list[i],move_type::CAPTURE_MOVE) {
-                *ply -=1;
                 continue;
             }
-            let score = -Self::quite_search(&mut generator.board,atk,-beta,-alpha,ply); 
-            *ply -= 1;
+            let score = -Self::quite_search(&mut generator.board,atk,-beta,-alpha,ply+1); 
             generator.board.restore_board(copy);
             if score >= beta {
                 return beta;

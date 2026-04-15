@@ -46,21 +46,8 @@ pub fn print_bitboard(board : &Bitboard){
 }
 
 pub fn bit_count(board:Bitboard) -> u8{
-    let mut count:u8 = 0; 
-    let mut temp = board;
-    while temp != 0 {
-        temp &= temp -1;
-        count += 1;
-    }  
-    count
+    return board.count_ones() as u8;
 }
 pub fn get_lsb(board:Bitboard) -> u8 {
-    let mut temp = board;
-    if temp == 0 {
-        panic!("supplied zero bitboard to get lsb !!!");
-    }
-    else{
-        temp = (temp & temp.wrapping_neg()) - 1;   
-    }
-    bit_count(temp)
+    return board.trailing_zeros() as u8;
 }

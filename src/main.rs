@@ -51,7 +51,7 @@ fn main() {
         let mut generator = MoveGenerator::new(&mut chess,&attacks);
         generator.generate_moves();
         
-        generator.moves.print_all_moves();
+        generator.print_all_moves();
         for i in 0..generator.moves.count {
             let copy = generator.board.clone();
             if generator.make_move(generator.moves.list[i],move_type::CAPTURE_MOVE) {

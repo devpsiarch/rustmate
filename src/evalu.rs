@@ -1,6 +1,6 @@
 /*
 * Well define here methodes to evaluate a chessboard*/
-mod defs;
+pub mod defs;
 use crate::evalu::defs::{PIECES_COST,PIECES_LOCATION_COST,square_mirror};
 
 use crate::chessboard::Chessboard;
@@ -11,8 +11,8 @@ use crate::{
     get_bit,
 };
 // This function takes a 'clone' of a board once and then usese it up 
-pub fn evaluate(mut board:Chessboard) -> i32 {
-    let mut value:i32 = 0;
+pub fn evaluate(mut board:Chessboard) -> f64 {
+    let mut value:f64 = 0.0;
     for i in Pieces::P..=Pieces::k {
         // As long as there is pieces on the board
         let mut lsb:u8; 
