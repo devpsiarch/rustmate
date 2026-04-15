@@ -1,3 +1,4 @@
+use core::panic;
 use std::env;
 
 
@@ -10,7 +11,7 @@ use crate::chessboard::magic;
 use crate::defs::{FenPositions,SIDES};
 
 mod movegen;
-use crate::movegen::MoveGenerator;
+use crate::movegen::{MoveGenerator,MakeMoveError};
 use crate::movegen::movecode::{Move,MoveMask};
 use crate::movegen::movelist::{MoveList};
 //i am using these here just for testing future me , take them down when everything is set
@@ -42,24 +43,42 @@ fn main() {
     attacks.load_attacks_maps();
     let mut chess = Chessboard::new();   
 
-    let dev = false;
+    let dev = true;
 
     // Then we are developing the engine
     if dev == true {
-        chess.init_board(FenPositions::KILLER_POSITION);
+        chess.init_board(FenPositions::TRICKY_POSITION);
         
         let mut generator = MoveGenerator::new(&mut chess,&attacks);
         generator.generate_moves();
         
         generator.print_all_moves();
-        for i in 0..generator.moves.count {
-            let copy = generator.board.clone();
-            if generator.make_move(generator.moves.list[i],move_type::CAPTURE_MOVE) {
-                println!("atk move here");
-                generator.board.restore_board(copy);
-            }
 
+        println!("BEFORE THE MOVE");
+        generator.board.print_chessboard();
+
+        let i = 9;
+
+        let killed = match generator.make_move(generator.moves.list[i],move_type::ALL_MOVES) {
+            Ok(maybe_killed_piece) => maybe_killed_piece,
+            Err(_) => {
+                panic!("failed to make the move");
+            }
+        };
+
+        println!("AFTERT THE MOVE");
+        generator.board.print_chessboard();
+
+        match generator.unmake_move(generator.moves.list[i], killed){
+            Ok(_) => {
+                println!("AFTER THE UNMAKE MOVE");
+                generator.board.print_chessboard();
+            }
+            Err(_) => {
+                panic!("unmake move failed....");
+            }
         }
+
         return;
         println!("the value of this board : {}",evaluate(chess.clone())); 
         let start = Instant::now(); 

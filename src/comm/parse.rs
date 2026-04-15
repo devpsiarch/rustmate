@@ -2,7 +2,7 @@ use crate::Chessboard;
 use crate::chessboard::attacks::AttackMasks;
 use crate::chessboard::defs::{Pieces,FenPositions,algb_to_square,SQUARE,SQUARE_NAME};
 
-use crate::movegen::MoveGenerator;
+use crate::movegen::{MoveGenerator,move_type,MakeMoveError};
 use crate::movegen::movecode::{Move};
 use crate::movegen::perft::{perft_driver};
 use crate::{
@@ -143,9 +143,15 @@ pub fn position_handler(board:&mut Chessboard,atk:&AttackMasks,parts:&Vec<&str>)
         let mv = parse_move(&mut generator,mov);
         // Getting the move failed for some reason , we dont care
         if mv != 0 {
-            if !generator.make_move(mv,ALL_MOVES) {
-                println!("move {mov} not made ...");
-            }
+
+            let _killed = match generator.make_move(mv,move_type::ALL_MOVES) {
+                Ok(maybe_killed_piece) => maybe_killed_piece,
+                Err(MakeMoveError::CaptureConflict) | Err(MakeMoveError::Illegal) => {
+                    println!("move {mov} not made ...");
+                    continue;
+                }
+            };
+
         }
     }
     //board.print_chessboard();

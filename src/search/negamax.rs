@@ -2,6 +2,7 @@ use core::f64;
 
 use crate::SIDES;
 use crate::get_move_enpassant;
+use crate::movegen::MakeMoveError;
 use crate::movegen::MoveGenerator;
 use crate::Chessboard;
 use crate::attacks::AttackMasks;
@@ -52,9 +53,14 @@ impl Search {
         let board_cpy = generator.board.clone();
 
         for i in 0..generator.moves.count {
-            if !generator.make_move(generator.moves.list[i],move_type::ALL_MOVES){
-                continue;
-            }
+
+            let _killed = match generator.make_move(generator.moves.list[i],move_type::ALL_MOVES) {
+                Ok(maybe_killed_piece) => maybe_killed_piece,
+                Err(MakeMoveError::CaptureConflict) | Err(MakeMoveError::Illegal) => {
+                    continue;
+                }
+            };
+
     
             let score = -Self::negamax(
                 &mut generator.board, atk, -beta, -alpha, ply + 1, depth - 1
@@ -89,9 +95,14 @@ impl Search {
         let board_cpy = generator.board.clone();
 
         for i in 0..generator.moves.count {
-            if !generator.make_move(generator.moves.list[i],move_type::ALL_MOVES){
-                continue;
-            }
+            
+            let _killed = match generator.make_move(generator.moves.list[i],move_type::ALL_MOVES) {
+                Ok(maybe_killed_piece) => maybe_killed_piece,
+                Err(MakeMoveError::CaptureConflict) | Err(MakeMoveError::Illegal) => {
+                    continue;
+                }
+            };
+
             let score = -Self::negamax(
                 &mut generator.board, atk, -f64::INFINITY,f64::INFINITY,1, depth-1
             );

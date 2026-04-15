@@ -1,4 +1,4 @@
-use crate::movegen::MoveGenerator; 
+use crate::movegen::{MoveGenerator,MakeMoveError}; 
 use crate::chessboard::{Chessboard};
 use crate::chessboard::attacks::{AttackMasks};
 use crate::move_type; 
@@ -19,11 +19,16 @@ pub fn perft_driver(board:&mut Chessboard,atk:&AttackMasks,depth:u32) -> u64 {
     let mut nodes:u64 = 0;
     let copy = generator.board.clone();
     for i in 0..generator.moves.count {
-        if generator.make_move(generator.moves.list[i],move_type::ALL_MOVES) == true {
-            nodes += perft_driver(&mut generator.board,&generator.attacks, depth - 1);
-        }else{
-           continue; 
-        }
+
+        let _killed = match generator.make_move(generator.moves.list[i],move_type::ALL_MOVES) {
+            Ok(maybe_killed_piece) => maybe_killed_piece,
+            Err(MakeMoveError::CaptureConflict) | Err(MakeMoveError::Illegal) => {
+                continue;
+            }
+        };
+
+        nodes += perft_driver(&mut generator.board,&generator.attacks, depth - 1);
+
         generator.board.restore_board(copy);
     }
     nodes

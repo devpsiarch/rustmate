@@ -5,6 +5,7 @@ pub mod perft;
 use crate::{Chessboard,MoveMask};
 use crate::attacks::AttackMasks;
 use crate::{MoveList};
+use crate::defs::ChessPiece;
 // Am not sure about the below code , but F it ill do this if i get headache ill fix the damn thing 
 // Petition : maybe ill include a Vec in the MoveGenerator to store the moves
 use crate::chessboard::defs::{SQUARE_NAME,UNICODE_PIECES,Pieces};
@@ -38,12 +39,37 @@ use crate::get_bit;
 use crate::set_bit;
 use crate::pop_bit;
 
-
 pub struct MoveGenerator<'a> {
     pub board:&'a mut Chessboard,
     attacks:&'a AttackMasks,
     pub moves:MoveList,
 }
+
+
+pub struct UndoMovePacket {
+    captured_piece: Option<ChessPiece>,
+    enpassant_square: u8,
+}
+impl UndoMovePacket {
+    #[inline(always)]
+    pub fn new(captured_piece: Option<ChessPiece>, enpassant_square: u8) -> Self {
+        Self {
+            captured_piece,
+            enpassant_square,
+        }
+    }
+}
+
+// these are the only errors that can occure during making a move
+pub enum MakeMoveError {
+    Illegal,CaptureConflict
+}
+
+// defines the errors that we might fall into if we try to unmake move
+pub enum UnmakeMoveError {
+    Generic,CaptureMismatch
+}
+
 impl<'a> MoveGenerator<'a> {
     // Creates a new instance depending on a Chessboard and AttackMasks objects , idk if that a
     // good idea or not but hey
@@ -76,7 +102,7 @@ impl<'a> MoveGenerator<'a> {
     /*
     * This is a peudo legal move generator to so we have to check if the move is illegal before
     * returning */
-    pub fn make_move(&mut self,mv:Move,flag:move_type) -> bool {
+    pub fn make_move(&mut self,mv:Move,flag:move_type) -> Result<UndoMovePacket,MakeMoveError> {
         match flag {
             // Making the move normally
             move_type::ALL_MOVES => {
@@ -97,6 +123,12 @@ impl<'a> MoveGenerator<'a> {
                 pop_bit!(self.board.bitboards[piece],src);   
                 set_bit!(self.board.bitboards[piece],dst);   
                 
+                // stores the piece that was killed in this move (if it exists)
+                let mut killed_in_action: Option<ChessPiece> = None;
+                
+                // we save the previous ens passant square since its needed for reverse
+                let saved_en_passant: u8 = self.board.en_passant;
+
                 // Now going though all the cases of the move and making the move accordingly 
                 // Checking if the move happens to be a capture
                 if capture {
@@ -110,6 +142,7 @@ impl<'a> MoveGenerator<'a> {
                     for piece in start..=end {
                         if get_bit!(self.board.bitboards[piece], dst) != 0 {
                             pop_bit!(self.board.bitboards[piece], dst);
+                            killed_in_action = Some(piece);
                             break; // Only one piece can occupy a square
                         }
                     }
@@ -207,11 +240,11 @@ impl<'a> MoveGenerator<'a> {
                     // The move is not legal then f this and restore the previous board
                     // What this means is that the move is not made if its not legal
                     self.board.restore_board(copy);
-                    return false;
+                    return Err(MakeMoveError::Illegal);
                 }
                 else {
                     // if the move is legal , the move is made and board is updated
-                    return true; 
+                    return Ok(UndoMovePacket::new(killed_in_action,saved_en_passant));
                 }    
             }
             // Its is said that we do this to avoid the "Horizon effect" , idk why this would help
@@ -222,11 +255,99 @@ impl<'a> MoveGenerator<'a> {
                     return self.make_move(mv,move_type::ALL_MOVES);
                 }
                 else {
-                    return false; 
+                    return Err(MakeMoveError::CaptureConflict); 
                 }
             } 
         }
-    }  
+    }
+
+    pub fn unmake_move(&mut self,mv: Move, information: UndoMovePacket) -> Result<(),UnmakeMoveError>{
+        // get piece from mv
+        // put piece in src and unput in dst
+        // if capture and peice killed => put killed in dst
+        // handle enpasasnt
+        // handle promotions
+        // handle castle
+        // switch back turns
+        
+        // resotore the enpassant square regardless of move
+        self.board.en_passant = information.enpassant_square;
+
+        let moved_piece = get_move_piece!(mv) as ChessPiece;
+
+        let dst = get_move_dst!(mv) as u8;
+        let src = get_move_src!(mv) as u8;
+
+        pop_bit!(self.board.bitboards[moved_piece],dst);
+        set_bit!(self.board.bitboards[moved_piece],src);
+
+        match information.captured_piece {
+            Some(killed) => {
+                if get_move_capture!(mv) == 0 {
+                    return Err(UnmakeMoveError::CaptureMismatch);
+                }
+
+                set_bit!(self.board.bitboards[killed],dst);
+
+            }
+            None => ()
+        }
+
+        if get_move_enpassant!(mv) != 0 {
+            match self.board.side_to_move {
+                SIDES::WHITE => set_bit!(self.board.bitboards[Pieces::P],dst-8),
+                SIDES::BLACK => set_bit!(self.board.bitboards[Pieces::p],dst+8),
+            }
+
+            self.board.en_passant = dst;
+
+        }
+
+        let promo =  get_move_promotion!(mv) as ChessPiece;
+
+        if promo != Pieces::NONE as ChessPiece{
+            pop_bit!(self.board.bitboards[promo],dst);
+        }
+
+        if get_move_castle!(mv) != 0 {
+            match dst {
+                // I didnt wanna split them even more cuz i think this is fine for now
+                // The first two casers are for white castles 
+                SQUARE::g1 => {
+                    set_bit!(self.board.bitboards[Pieces::R],SQUARE::h1); 
+                    pop_bit!(self.board.bitboards[Pieces::R],SQUARE::f1); 
+                }
+                SQUARE::c1 => {
+                    set_bit!(self.board.bitboards[Pieces::R],SQUARE::a1); 
+                    pop_bit!(self.board.bitboards[Pieces::R],SQUARE::d1); 
+                }
+                // And these are for black casltes 
+                SQUARE::g8 => {
+                    set_bit!(self.board.bitboards[Pieces::r],SQUARE::h8); 
+                    pop_bit!(self.board.bitboards[Pieces::r],SQUARE::f8); 
+                }
+                SQUARE::c8 => {
+                    set_bit!(self.board.bitboards[Pieces::r],SQUARE::a8); 
+                    pop_bit!(self.board.bitboards[Pieces::r],SQUARE::d8); 
+                }
+                // If we panic here that means there is an error in the move generation
+                // methode go check it out
+                _ => panic!("What the hell is this castle move ? check generate moves (paniced during unmake move)"),
+            }
+        }
+
+        // restore castle rights
+        self.board.castling_rights |= CASTLING_RIGHTS_UPDATE[src as usize];
+        self.board.castling_rights |= CASTLING_RIGHTS_UPDATE[dst as usize];
+
+        match self.board.side_to_move {
+            SIDES::WHITE => self.board.side_to_move = SIDES::BLACK,
+            SIDES::BLACK => self.board.side_to_move = SIDES::WHITE,
+        }
+
+        Ok(())
+    }
+
     // the functions below assume that the moves already has been generated
     #[allow(dead_code)] 
     pub fn check_mate(&self) -> bool {

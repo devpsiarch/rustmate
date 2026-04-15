@@ -1,4 +1,5 @@
 use crate::evalu::evaluate;
+use crate::movegen::MakeMoveError;
 use crate::movegen::MoveGenerator;
 use crate::Chessboard;
 use crate::attacks::AttackMasks;
@@ -39,19 +40,25 @@ impl Search {
                 let mut maxeval = -f64::INFINITY;
                 let copy = generator.board.clone();
                 for i in 0..generator.moves.count {
-                    if generator.make_move(generator.moves.list[i],move_type::ALL_MOVES) {
-                        // we dont care about the best move the oposite side might make
-                        let eval = Self::minimax_alpha_beta(&mut generator.board,atk,depth-1,alpha,beta,SIDES::BLACK,ply+1);
-                        // a better move was found
-                        if eval > maxeval {
-                            maxeval = eval;
-                        }
-                        alpha = eval.max(alpha);
-                        generator.board.restore_board(copy);
 
-                        if alpha >= beta {
-                            break;
+                    let _killed = match generator.make_move(generator.moves.list[i],move_type::ALL_MOVES) {
+                        Ok(maybe_killed_piece) => maybe_killed_piece,
+                        Err(MakeMoveError::CaptureConflict) | Err(MakeMoveError::Illegal) => {
+                            continue;
                         }
+                    };
+
+                    // we dont care about the best move the oposite side might make
+                    let eval = Self::minimax_alpha_beta(&mut generator.board,atk,depth-1,alpha,beta,SIDES::BLACK,ply+1);
+                    // a better move was found
+                    if eval > maxeval {
+                        maxeval = eval;
+                    }
+                    alpha = eval.max(alpha);
+                    generator.board.restore_board(copy);
+
+                    if alpha >= beta {
+                        break;
                     }
                 }
                 maxeval
@@ -61,7 +68,14 @@ impl Search {
                 let mut minval = f64::INFINITY;
                 let copy = generator.board.clone();
                 for i in 0..generator.moves.count {
-                    if generator.make_move(generator.moves.list[i],move_type::ALL_MOVES) {
+
+                        let _killed = match generator.make_move(generator.moves.list[i],move_type::ALL_MOVES) {
+                            Ok(maybe_killed_piece) => maybe_killed_piece,
+                            Err(MakeMoveError::CaptureConflict) | Err(MakeMoveError::Illegal) => {
+                                continue;
+                            }
+                        };
+
                         // again we dont care about the best moves the opponante migh make
                         let eval = Self::minimax_alpha_beta(&mut generator.board,atk,depth-1,alpha,beta,SIDES::WHITE,ply+1);
                         if eval < minval {
@@ -73,7 +87,6 @@ impl Search {
                         if alpha >= beta {
                             break;
                         }
-                    }
                 }
                 minval
             }
@@ -97,9 +110,12 @@ impl Search {
         let board_cpy = generator.board.clone();
 
         for i in 0..generator.moves.count {
-            if !generator.make_move(generator.moves.list[i],move_type::ALL_MOVES){
-                continue;
-            }
+            let _killed = match generator.make_move(generator.moves.list[i],move_type::ALL_MOVES) {
+                Ok(maybe_killed_piece) => maybe_killed_piece,
+                Err(MakeMoveError::CaptureConflict) | Err(MakeMoveError::Illegal) => {
+                    continue;
+                }
+            };
 
             let score = Self::minimax_alpha_beta(
                 generator.board, atk, depth-1, -f64::INFINITY, f64::INFINITY, generator.board.side_to_move, 1

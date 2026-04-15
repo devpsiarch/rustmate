@@ -35,48 +35,53 @@ pub fn uci(board:&mut Chessboard,atk:&AttackMasks) -> UciExitStatus {
                 buffer.clear();
                 buffer.push_str(&command);
                 // Here we handle short and simple commands that are one word long ...
-                if buffer == "quit" {
-                    return Ok(())
-                }
-                else if buffer == "uci" {
-                    show_engine_info();
-                }
-                else if buffer == "isready" {
-                    println!("readyok");
-                }
-                else if buffer == "go" {
-                    todo!();
-                }
-                else if buffer == "ucinewgame" {
-                    let temp = vec!["position","startpos"];
-                    position_handler(board,atk,&temp);
-                }
-                // for debuging this shit
-                else if buffer == "show_ocp" {
-                    print_bitboard(&board.occupencies[0]);
-                    print_bitboard(&board.occupencies[1]);
-                    print_bitboard(&board.occupencies[2]);
-                }
-                else if buffer == "show_moves" {
-                    let mut generator = MoveGenerator::new(board,atk);
-                    generator.generate_moves();
-                    generator.move_order();
-                    generator.print_all_moves();
-                }
-                else if buffer == "show_board" {
-                    board.print_chessboard();
-                }
-                // Handling the commands happends here 
-                // Getting the parts of the command 
-                let parts: Vec<&str> = buffer.split(" ").collect();
-                match parts[0] {
-                    "position" => position_handler(board,atk,&parts),
-                    "go" => go_handler(board,atk,&parts),
-                    _ => {
-                        // We dont exit when encortering unreconised command
-                        ()
+                match buffer.trim() {
+                    "quit" => return Ok(()),
+                    
+                    "uci" => show_engine_info(),
+                    
+                    "isready" => println!("readyok"),
+                    
+                    "go" => todo!(),
+                    
+                    "ucinewgame" => {
+                        let temp = vec!["position", "startpos"];
+                        position_handler(board, atk, &temp);
+                        board.print_chessboard();
                     }
+                    
+                    // For debugging
+                    "show_ocp" => {
+                        print_bitboard(&board.occupencies[0]);
+                        print_bitboard(&board.occupencies[1]);
+                        print_bitboard(&board.occupencies[2]);
+                    }
+                    
+                    "show_moves" => {
+                        let mut generator = MoveGenerator::new(board, atk);
+                        generator.generate_moves();
+                        generator.move_order();
+                        generator.print_all_moves();
+                    }
+                    
+                    "show_board" => board.print_chessboard(),
+                    
+                    // The "catch-all" arm (required because match must be exhaustive)
+                    _ => {
+                        // Handling the commands happends here 
+                        // Getting the parts of the command 
+                        let parts: Vec<&str> = buffer.split(" ").collect();
+                        match parts[0] {
+                            "position" => position_handler(board,atk,&parts),
+                            "go" => go_handler(board,atk,&parts),
+                            _ => {
+                                // We dont exit when encortering unreconised command
+                                println!("unreconized command.")
+                            }
+                        }
+                    }, 
                 }
+
             }
             Err(e) => {
                 println!("Error {e} reading the line !!! exisiting UCI mainloop");

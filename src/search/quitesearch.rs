@@ -1,4 +1,4 @@
-use crate::movegen::MoveGenerator;
+use crate::movegen::{MoveGenerator,MakeMoveError};
 use crate::Chessboard;
 use crate::attacks::AttackMasks;
 use crate::evalu::{evaluate};
@@ -27,9 +27,14 @@ impl Search {
        
         let copy = generator.board.clone();
         for i in 0..generator.moves.count {
-            if !generator.make_move(generator.moves.list[i],move_type::CAPTURE_MOVE) {
-                continue;
-            }
+            
+            let _killed = match generator.make_move(generator.moves.list[i],move_type::ALL_MOVES) {
+                Ok(maybe_killed_piece) => maybe_killed_piece,
+                Err(MakeMoveError::CaptureConflict) | Err(MakeMoveError::Illegal) => {
+                    continue;
+                }
+            };
+
             let score = -Self::quite_search(&mut generator.board,atk,-beta,-alpha,ply+1); 
             generator.board.restore_board(copy);
             if score >= beta {
