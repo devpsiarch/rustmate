@@ -18,8 +18,8 @@ pub struct Chessboard {
     pub occupencies : [Bitboard;3],         // one for black , black and both
     pub castling_rights : u8,               // binary rep each bit encodes for a right
     pub en_passant : u8,                    // number from 0 to 64 for all squares and a NONE option
-    half_move_clock : u8,               // regular counter 
-    move_count : u16,                  // same here 
+    pub half_move_clock : u8,               // regular counter 
+    pub move_count : u16,                  // same here 
 }
 impl Chessboard {
     //We might have to alwasys go back here too more features as the programs grows

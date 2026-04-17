@@ -48,14 +48,26 @@ pub struct MoveGenerator<'a> {
 
 pub struct UndoMovePacket {
     captured_piece: Option<ChessPiece>,
+    castling_rights : u8,
     enpassant_square: u8,
+    half_move_clock : u8,
+    move_count : u16,
 }
 impl UndoMovePacket {
     #[inline(always)]
-    pub fn new(captured_piece: Option<ChessPiece>, enpassant_square: u8) -> Self {
+    pub fn new(
+        captured_piece: Option<ChessPiece>,
+        castling_rights: u8,
+        enpassant_square: u8,
+        half_move_clock : u8,
+        move_count : u16
+        ) -> Self {
         Self {
             captured_piece,
             enpassant_square,
+            castling_rights,
+            half_move_clock,
+            move_count
         }
     }
 }
@@ -128,6 +140,11 @@ impl<'a> MoveGenerator<'a> {
                 
                 // we save the previous ens passant square since its needed for reverse
                 let saved_en_passant: u8 = self.board.en_passant;
+
+                let saved_casting_rights = self.board.castling_rights;
+                let saved_half_move_clock = self.board.half_move_clock;
+                let saved_move_count = self.board.move_count;
+
 
                 // Now going though all the cases of the move and making the move accordingly 
                 // Checking if the move happens to be a capture
@@ -244,7 +261,7 @@ impl<'a> MoveGenerator<'a> {
                 }
                 else {
                     // if the move is legal , the move is made and board is updated
-                    return Ok(UndoMovePacket::new(killed_in_action,saved_en_passant));
+                    return Ok(UndoMovePacket::new(killed_in_action,saved_casting_rights,saved_en_passant,saved_half_move_clock,saved_move_count));
                 }    
             }
             // Its is said that we do this to avoid the "Horizon effect" , idk why this would help
@@ -261,92 +278,94 @@ impl<'a> MoveGenerator<'a> {
         }
     }
 
-    pub fn unmake_move(&mut self,mv: Move, information: UndoMovePacket) -> Result<(),UnmakeMoveError>{
-        // get piece from mv
-        // put piece in src and unput in dst
-        // if capture and peice killed => put killed in dst
-        // handle enpasasnt
-        // handle promotions
-        // handle castle
-        // switch back turns
-        
-        // resotore the enpassant square regardless of move
-        self.board.en_passant = information.enpassant_square;
+    pub fn unmake_move(&mut self, mv: Move, information: UndoMovePacket) -> Result<(), UnmakeMoveError> {
+            self.board.side_to_move = match self.board.side_to_move {
+                SIDES::WHITE => SIDES::BLACK,
+                SIDES::BLACK => SIDES::WHITE,
+            };
 
-        let moved_piece = get_move_piece!(mv) as ChessPiece;
+            let us = self.board.side_to_move as usize;
+            let them = match self.board.side_to_move {
+                SIDES::WHITE => SIDES::BLACK as usize,
+                SIDES::BLACK => SIDES::WHITE as usize,
+            };
 
-        let dst = get_move_dst!(mv) as u8;
-        let src = get_move_src!(mv) as u8;
+            self.board.en_passant = information.enpassant_square;
+            self.board.castling_rights = information.castling_rights;
+            self.board.half_move_clock = information.half_move_clock;
+            self.board.move_count = information.move_count;
 
-        pop_bit!(self.board.bitboards[moved_piece],dst);
-        set_bit!(self.board.bitboards[moved_piece],src);
+            let src = get_move_src!(mv) as u8;
+            let dst = get_move_dst!(mv) as u8;
+            let moved_piece = get_move_piece!(mv) as usize;
+            let promo = get_move_promotion!(mv) as usize;
+            let ep_flag = get_move_enpassant!(mv) != 0;
+            let castle_flag = get_move_castle!(mv) != 0;
 
-        match information.captured_piece {
-            Some(killed) => {
+            if promo != Pieces::NONE as usize {
+                pop_bit!(self.board.bitboards[promo], dst);
+            } else {
+                pop_bit!(self.board.bitboards[moved_piece], dst);
+            }
+            set_bit!(self.board.bitboards[moved_piece], src);
+
+            pop_bit!(self.board.occupencies[us], dst);
+            set_bit!(self.board.occupencies[us], src);
+
+            if let Some(killed) = information.captured_piece {
                 if get_move_capture!(mv) == 0 {
                     return Err(UnmakeMoveError::CaptureMismatch);
                 }
 
-                set_bit!(self.board.bitboards[killed],dst);
+                let killed_usize = killed as usize;
 
+                if ep_flag {
+                    let cap_sq = match self.board.side_to_move {
+                        SIDES::WHITE => dst - 8, 
+                        SIDES::BLACK => dst + 8,
+                    };
+                    set_bit!(self.board.bitboards[killed_usize], cap_sq);
+                    set_bit!(self.board.occupencies[them], cap_sq);
+                } else {
+                    set_bit!(self.board.bitboards[killed_usize], dst);
+                    set_bit!(self.board.occupencies[them], dst);
+                }
             }
-            None => ()
-        }
 
-        if get_move_enpassant!(mv) != 0 {
-            match self.board.side_to_move {
-                SIDES::WHITE => set_bit!(self.board.bitboards[Pieces::P],dst-8),
-                SIDES::BLACK => set_bit!(self.board.bitboards[Pieces::p],dst+8),
+            if castle_flag {
+                match dst {
+                    SQUARE::g1 => {
+                        pop_bit!(self.board.bitboards[Pieces::R], SQUARE::f1); 
+                        set_bit!(self.board.bitboards[Pieces::R], SQUARE::h1); 
+                        pop_bit!(self.board.occupencies[us], SQUARE::f1); // Rook occupancy
+                        set_bit!(self.board.occupencies[us], SQUARE::h1);
+                    }
+                    SQUARE::c1 => {
+                        pop_bit!(self.board.bitboards[Pieces::R], SQUARE::d1); 
+                        set_bit!(self.board.bitboards[Pieces::R], SQUARE::a1); 
+                        pop_bit!(self.board.occupencies[us], SQUARE::d1); // Rook occupancy
+                        set_bit!(self.board.occupencies[us], SQUARE::a1);
+                    }
+                    SQUARE::g8 => {
+                        pop_bit!(self.board.bitboards[Pieces::r], SQUARE::f8); 
+                        set_bit!(self.board.bitboards[Pieces::r], SQUARE::h8); 
+                        pop_bit!(self.board.occupencies[us], SQUARE::f8); // Rook occupancy
+                        set_bit!(self.board.occupencies[us], SQUARE::h8);
+                    }
+                    SQUARE::c8 => {
+                        pop_bit!(self.board.bitboards[Pieces::r], SQUARE::d8); 
+                        set_bit!(self.board.bitboards[Pieces::r], SQUARE::a8);
+                        pop_bit!(self.board.occupencies[us], SQUARE::d8); // Rook occupancy
+                        set_bit!(self.board.occupencies[us], SQUARE::a8); 
+                    }
+                    _ => panic!("What the hell is this castle move ? check generate moves (paniced during unmake move)"),
+                }
             }
 
-            self.board.en_passant = dst;
+            self.board.occupencies[COLOR::BOTH] = self.board.occupencies[COLOR::w] | self.board.occupencies[COLOR::b];
 
+            Ok(())
         }
-
-        let promo =  get_move_promotion!(mv) as ChessPiece;
-
-        if promo != Pieces::NONE as ChessPiece{
-            pop_bit!(self.board.bitboards[promo],dst);
-        }
-
-        if get_move_castle!(mv) != 0 {
-            match dst {
-                // I didnt wanna split them even more cuz i think this is fine for now
-                // The first two casers are for white castles 
-                SQUARE::g1 => {
-                    set_bit!(self.board.bitboards[Pieces::R],SQUARE::h1); 
-                    pop_bit!(self.board.bitboards[Pieces::R],SQUARE::f1); 
-                }
-                SQUARE::c1 => {
-                    set_bit!(self.board.bitboards[Pieces::R],SQUARE::a1); 
-                    pop_bit!(self.board.bitboards[Pieces::R],SQUARE::d1); 
-                }
-                // And these are for black casltes 
-                SQUARE::g8 => {
-                    set_bit!(self.board.bitboards[Pieces::r],SQUARE::h8); 
-                    pop_bit!(self.board.bitboards[Pieces::r],SQUARE::f8); 
-                }
-                SQUARE::c8 => {
-                    set_bit!(self.board.bitboards[Pieces::r],SQUARE::a8); 
-                    pop_bit!(self.board.bitboards[Pieces::r],SQUARE::d8); 
-                }
-                // If we panic here that means there is an error in the move generation
-                // methode go check it out
-                _ => panic!("What the hell is this castle move ? check generate moves (paniced during unmake move)"),
-            }
-        }
-
-        // restore castle rights
-        self.board.castling_rights |= CASTLING_RIGHTS_UPDATE[src as usize];
-        self.board.castling_rights |= CASTLING_RIGHTS_UPDATE[dst as usize];
-
-        match self.board.side_to_move {
-            SIDES::WHITE => self.board.side_to_move = SIDES::BLACK,
-            SIDES::BLACK => self.board.side_to_move = SIDES::WHITE,
-        }
-
-        Ok(())
-    }
 
     // the functions below assume that the moves already has been generated
     #[allow(dead_code)] 

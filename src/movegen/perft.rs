@@ -33,3 +33,33 @@ pub fn perft_driver(board:&mut Chessboard,atk:&AttackMasks,depth:u32) -> u64 {
     }
     nodes
 }
+
+
+pub fn perft_driver_undo(board:&mut Chessboard,atk:&AttackMasks,depth:u32) -> u64 {
+    if depth == 0 {
+        return 1;
+    }
+    // Creating a generator object
+    let mut generator = MoveGenerator::new(board,&atk);  
+    generator.generate_moves();
+    let mut nodes:u64 = 0;
+    for i in 0..generator.moves.count {
+
+        let packet = match generator.make_move(generator.moves.list[i],move_type::ALL_MOVES) {
+            Ok(maybepacket_piece) => maybepacket_piece,
+            Err(MakeMoveError::CaptureConflict) | Err(MakeMoveError::Illegal) => {
+                continue;
+            }
+        };
+
+        nodes += perft_driver(&mut generator.board,&generator.attacks, depth - 1);
+
+        match generator.unmake_move(generator.moves.list[i],packet) {
+            Ok(()) => (),
+            Err(_) => {
+                panic!("unmake_move failed during perft_driver.")
+            }
+        }
+    }
+    nodes
+}
