@@ -118,9 +118,12 @@ impl<'a> MoveGenerator<'a> {
         match flag {
             // Making the move normally
             move_type::ALL_MOVES => {
-                // create a clone of the current board 
-                // this function will never change the board if the move is not legal
-                let copy = self.board.clone();
+                
+                // we create an information packet
+                let mut packet = UndoMovePacket::new(
+                    None,self.board.castling_rights,self.board.en_passant,self.board.half_move_clock,self.board.move_count
+                );
+
                 // Parse the move first
                 let src = get_move_src!(mv) as u8;
                 let dst = get_move_dst!(mv) as u8;
@@ -160,6 +163,7 @@ impl<'a> MoveGenerator<'a> {
                         if get_bit!(self.board.bitboards[piece], dst) != 0 {
                             pop_bit!(self.board.bitboards[piece], dst);
                             killed_in_action = Some(piece);
+                            packet.captured_piece = Some(piece);
                             break; // Only one piece can occupy a square
                         }
                     }
@@ -253,10 +257,17 @@ impl<'a> MoveGenerator<'a> {
                 }
                 // if no kings are on the board the program panics , either hanlde it here 
                 // or always have kings chilling on the board
+                
                 if self.square_attacked(self.board.side_to_move.clone(),get_lsb(self.board.bitboards[king]) as u8) == true {
+                    // we create a packet from the current board configuration            
+                    
+                    match self.unmake_move(mv,packet) {
+                        Ok(()) => (),
+                        Err(_) => panic!("failed to unmake move while the move is illegal."),
+                    }
+
                     // The move is not legal then f this and restore the previous board
                     // What this means is that the move is not made if its not legal
-                    self.board.restore_board(copy);
                     return Err(MakeMoveError::Illegal);
                 }
                 else {

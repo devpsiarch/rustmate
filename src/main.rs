@@ -106,8 +106,8 @@ fn main() {
             return ;
         }
         EngineMode::PerfDriver => {
-            chess.init_board(FenPositions::STARTING_POSITION);
-            let depth = 7;
+            chess.init_board(FenPositions::POSITION_4);
+            let depth = 5;
             println!("Perftest using copy retrace");
             let start = Instant::now();
             for i in 0..depth {

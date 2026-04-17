@@ -38,10 +38,9 @@ impl Search {
             // White wants to maximize the evaluation 
             SIDES::WHITE => {
                 let mut maxeval = -f64::INFINITY;
-                let copy = generator.board.clone();
                 for i in 0..generator.moves.count {
 
-                    let _killed = match generator.make_move(generator.moves.list[i],move_type::ALL_MOVES) {
+                    let packet = match generator.make_move(generator.moves.list[i],move_type::ALL_MOVES) {
                         Ok(maybe_killed_piece) => maybe_killed_piece,
                         Err(MakeMoveError::CaptureConflict) | Err(MakeMoveError::Illegal) => {
                             continue;
@@ -55,7 +54,11 @@ impl Search {
                         maxeval = eval;
                     }
                     alpha = eval.max(alpha);
-                    generator.board.restore_board(copy);
+
+                    match generator.unmake_move(generator.moves.list[i],packet) {
+                        Ok(()) => (),
+                        Err(_) => panic!("[SEARCH]: unable to unmake move during search."),
+                    }
 
                     if alpha >= beta {
                         break;
@@ -66,10 +69,9 @@ impl Search {
             // Black wants to minimize the evaluation
             SIDES::BLACK => {
                 let mut minval = f64::INFINITY;
-                let copy = generator.board.clone();
                 for i in 0..generator.moves.count {
 
-                        let _killed = match generator.make_move(generator.moves.list[i],move_type::ALL_MOVES) {
+                        let packet = match generator.make_move(generator.moves.list[i],move_type::ALL_MOVES) {
                             Ok(maybe_killed_piece) => maybe_killed_piece,
                             Err(MakeMoveError::CaptureConflict) | Err(MakeMoveError::Illegal) => {
                                 continue;
@@ -82,7 +84,10 @@ impl Search {
                             minval = eval;
                         }
                         beta = eval.max(beta); 
-                        generator.board.restore_board(copy);
+                        match generator.unmake_move(generator.moves.list[i],packet) {
+                            Ok(()) => (),
+                            Err(_) => panic!("[SEARCH]: unable to unmake move during search."),
+                        }
 
                         if alpha >= beta {
                             break;
@@ -107,10 +112,8 @@ impl Search {
         let mut generator = MoveGenerator::new(board, &atk);
         generator.generate_moves();
 
-        let board_cpy = generator.board.clone();
-
         for i in 0..generator.moves.count {
-            let _killed = match generator.make_move(generator.moves.list[i],move_type::ALL_MOVES) {
+            let packet = match generator.make_move(generator.moves.list[i],move_type::ALL_MOVES) {
                 Ok(maybe_killed_piece) => maybe_killed_piece,
                 Err(MakeMoveError::CaptureConflict) | Err(MakeMoveError::Illegal) => {
                     continue;
@@ -121,7 +124,12 @@ impl Search {
                 generator.board, atk, depth-1, -f64::INFINITY, f64::INFINITY, generator.board.side_to_move, 1
             );
 
-            match board_cpy.side_to_move {
+            match generator.unmake_move(generator.moves.list[i],packet) {
+                Ok(()) => (),
+                Err(_) => panic!("[SEARCH]: unable to unmake move during search."),
+            }
+
+            match generator.board.side_to_move {
                 SIDES::WHITE => {
                     if score > bestscore {
                         bestmove = Some(generator.moves.list[i]);
@@ -138,7 +146,7 @@ impl Search {
                 }
             }
 
-            generator.board.restore_board(board_cpy);
+
 
             if alpha >= beta {
                 break;

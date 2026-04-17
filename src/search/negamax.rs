@@ -1,4 +1,5 @@
 use core::f64;
+use core::panic;
 
 use crate::SIDES;
 use crate::get_move_enpassant;
@@ -50,11 +51,9 @@ impl Search {
 
         let mut best_score = -f64::INFINITY;
     
-        let board_cpy = generator.board.clone();
-
         for i in 0..generator.moves.count {
 
-            let _killed = match generator.make_move(generator.moves.list[i],move_type::ALL_MOVES) {
+            let packet = match generator.make_move(generator.moves.list[i],move_type::ALL_MOVES) {
                 Ok(maybe_killed_piece) => maybe_killed_piece,
                 Err(MakeMoveError::CaptureConflict) | Err(MakeMoveError::Illegal) => {
                     continue;
@@ -66,7 +65,10 @@ impl Search {
                 &mut generator.board, atk, -beta, -alpha, ply + 1, depth - 1
             );
 
-            generator.board.restore_board(board_cpy);
+            match generator.unmake_move(generator.moves.list[i],packet) {
+                Ok(()) => (),
+                Err(_) => panic!("[SEARCH]: unable to unmake move during search."),
+            }
 
             if score > best_score {
                 best_score = score;
@@ -92,11 +94,10 @@ impl Search {
         let mut generator = MoveGenerator::new(board, &atk);
         generator.generate_moves();
 
-        let board_cpy = generator.board.clone();
 
         for i in 0..generator.moves.count {
             
-            let _killed = match generator.make_move(generator.moves.list[i],move_type::ALL_MOVES) {
+            let packet = match generator.make_move(generator.moves.list[i],move_type::ALL_MOVES) {
                 Ok(maybe_killed_piece) => maybe_killed_piece,
                 Err(MakeMoveError::CaptureConflict) | Err(MakeMoveError::Illegal) => {
                     continue;
@@ -112,7 +113,10 @@ impl Search {
                 bestscore = score;
             }
 
-            generator.board.restore_board(board_cpy);
+            match generator.unmake_move(generator.moves.list[i],packet) {
+                Ok(()) => (),
+                Err(_) => panic!("[SEARCH]: unable to unmake move during search."),
+            }
         }
         return bestmove;
     }
