@@ -38,7 +38,8 @@ use crate::search::{Search};
 enum EngineMode {
     UCI,
     PerfDriver,
-    Custom
+    Custom,
+    Versus
 }
 
 //i will be running tests here untile everything is set and done
@@ -50,9 +51,31 @@ fn main() {
     attacks.load_attacks_maps();
     let mut chess = Chessboard::new();   
 
-    let mode = EngineMode::PerfDriver;
+    let mode = EngineMode::Versus;
 
     match mode {
+        EngineMode::Versus => {
+            let mut game_moves: Vec<Move> = Vec::<Move>::new();
+            // by default , a versus game starts at the start position for a regular chess game
+            chess.init_board(FenPositions::STARTING_POSITION);
+            let mut generator = MoveGenerator::new(&mut chess,&attacks);
+            
+            while let Some(mv) = Search::search_move(&mut generator.board, &attacks, 6) {
+                game_moves.push(mv);
+                if let Ok(_) = generator.make_move(mv,move_type::ALL_MOVES) {
+                    // generator.generate_moves();
+                    generator.board.print_chessboard();
+                    // generator.print_all_moves();               
+                }else{
+                    panic!("failed to make move ...");
+                }
+            }
+            println!("game over!");
+            generator.board.print_chessboard();
+            for mv in game_moves {
+                print!("{}{} ",chessboard::defs::SQUARE_NAME[get_move_src!(mv) as usize],chessboard::defs::SQUARE_NAME[get_move_dst!(mv) as usize]);
+            }
+        }
         EngineMode::UCI => {
             match uci(&mut chess,&attacks) {
                 Ok(()) => println!("UCI protocol session ended with success."),

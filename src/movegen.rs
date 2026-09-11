@@ -47,7 +47,7 @@ pub struct MoveGenerator<'a> {
 
 
 pub struct UndoMovePacket {
-    captured_piece: Option<ChessPiece>,
+    pub captured_piece: Option<ChessPiece>,
     castling_rights : u8,
     enpassant_square: u8,
     half_move_clock : u8,
@@ -96,13 +96,16 @@ impl<'a> MoveGenerator<'a> {
     pub fn generate_moves(&mut self) {
         // Untile now i rememeber that i might wanna reset the array of moves ... what a dummy
         self.moves = MoveList::new(); 
-        self.generate_pawn_moves();
-        self.generate_castle_moves();
-        self.generate_king_moves();
-        self.generate_knight_moves();
-        self.generate_bishop_moves();
-        self.generate_rook_moves();
-        self.generate_queen_moves();
+        if self.board.half_move_clock < 150 {
+            self.generate_pawn_moves();
+            self.generate_castle_moves();
+            self.generate_king_moves();
+            self.generate_knight_moves();
+            self.generate_bishop_moves();
+            self.generate_rook_moves();
+            self.generate_queen_moves();
+        }
+
     }
     // This is it , the function that makes the moves
     // Also this function is responsible for cheching and setting up game states such as : 
@@ -118,7 +121,8 @@ impl<'a> MoveGenerator<'a> {
         match flag {
             // Making the move normally
             move_type::ALL_MOVES => {
-                
+
+
                 // we create an information packet
                 let mut packet = UndoMovePacket::new(
                     None,self.board.castling_rights,self.board.en_passant,self.board.half_move_clock,self.board.move_count
@@ -133,7 +137,8 @@ impl<'a> MoveGenerator<'a> {
                 let enpassant = if get_move_enpassant!(mv) != 0 {true} else {false};
                 let double = if get_move_doublejump!(mv) != 0 {true} else {false};
                 let castle = if get_move_castle!(mv) != 0 {true} else {false};
-               
+
+
                 // Making the move first disregarding the occupancies they will be handled later 
                 pop_bit!(self.board.bitboards[piece],src);   
                 set_bit!(self.board.bitboards[piece],dst);   
@@ -148,7 +153,6 @@ impl<'a> MoveGenerator<'a> {
                 let saved_half_move_clock = self.board.half_move_clock;
                 let saved_move_count = self.board.move_count;
 
-
                 // Now going though all the cases of the move and making the move accordingly 
                 // Checking if the move happens to be a capture
                 if capture {
@@ -157,7 +161,6 @@ impl<'a> MoveGenerator<'a> {
                         SIDES::WHITE => (Pieces::p, Pieces::k),
                         SIDES::BLACK => (Pieces::P, Pieces::K),
                     };
-
                     // Search for the captured piece and remove it
                     for piece in start..=end {
                         if get_bit!(self.board.bitboards[piece], dst) != 0 {
@@ -261,9 +264,8 @@ impl<'a> MoveGenerator<'a> {
                 if self.square_attacked(self.board.side_to_move.clone(),get_lsb(self.board.bitboards[king]) as u8) == true {
                     // we create a packet from the current board configuration            
                     
-                    match self.unmake_move(mv,packet) {
-                        Ok(()) => (),
-                        Err(_) => panic!("failed to unmake move while the move is illegal."),
+                    if self.unmake_move(mv,packet).is_err() {
+                        panic!("failed to unmake move while the move is illegal.");
                     }
 
                     // The move is not legal then f this and restore the previous board
@@ -272,6 +274,13 @@ impl<'a> MoveGenerator<'a> {
                 }
                 else {
                     // if the move is legal , the move is made and board is updated
+                     
+                    // checking if the move was a pawn
+                    if get_bit!(self.board.bitboards[Pieces::P], src) != 0 || get_bit!(self.board.bitboards[Pieces::p], src) != 0 || capture {
+                        self.board.half_move_clock = 0;
+                    }else{
+                        self.board.half_move_clock += 1;
+                    }
                     return Ok(UndoMovePacket::new(killed_in_action,saved_casting_rights,saved_en_passant,saved_half_move_clock,saved_move_count));
                 }    
             }
@@ -279,7 +288,7 @@ impl<'a> MoveGenerator<'a> {
             // but hey 
             move_type::CAPTURE_MOVE => {
                 if get_move_capture!(mv) != 0 {
-                    // Thus , it is a capture move
+                    // Thus , it is a capture move (so just play it)
                     return self.make_move(mv,move_type::ALL_MOVES);
                 }
                 else {
@@ -401,7 +410,7 @@ impl<'a> MoveGenerator<'a> {
     }
     // shut up ... this way it looks pretty ;)
     pub fn stale_mate(&self) -> bool {
-        return if self.moves.count == 0 {true} else {false};
+        return if self.moves.count == 0 || self.board.half_move_clock >= 150 {true} else {false};
     }
     // Pretty prints the moves , this is only for me to not go absolutly insane while trouble
     // shooting
@@ -428,8 +437,8 @@ impl<'a> MoveGenerator<'a> {
         }
         println!("\n\t\t\tTotal moves : {}",self.moves.count);
     }
-    pub fn evaluate_move(&self,_some_move:Move) -> f64 {
-        // for now evaluate based on MVV-LVA
+
+    pub fn mvv_lva(&self,_some_move:Move) -> f64 {
         if get_move_capture!(_some_move) != 0{
             let mut victim_value = 0.0;
             let mut agressor_value = 0.0;
@@ -453,6 +462,11 @@ impl<'a> MoveGenerator<'a> {
         }else{
             return 0.0;
         }
+    }
+
+    pub fn evaluate_move(&self,_some_move:Move) -> f64 {
+        // for now evaluate based on MVV-LVA
+        self.mvv_lva(_some_move)
     }
 
     // a function that sorts the moves that have been generated

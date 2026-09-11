@@ -2,7 +2,6 @@ use core::f64;
 use core::panic;
 
 use crate::SIDES;
-use crate::get_move_enpassant;
 use crate::movegen::MakeMoveError;
 use crate::movegen::MoveGenerator;
 use crate::Chessboard;
@@ -11,6 +10,7 @@ use crate::movegen::movecode::Move;
 use crate::move_type; 
 use crate::Search;
 use crate::evalu::{evaluate};
+use crate::search::quitesearch;
 // petition to add nodes traversed and legal moves went thought in the seach process , for pretty
 // stuff
 
@@ -27,8 +27,8 @@ impl Search {
         if depth == 0 {
             let eval = evaluate(*board);
             match board.side_to_move {
-                SIDES::WHITE => {return eval;}
-                SIDES::BLACK => {return -eval;}
+                SIDES::WHITE => {return Search::quite_search(board,atk,-f64::INFINITY,f64::INFINITY,ply);}
+                SIDES::BLACK => {return -Search::quite_search(board,atk,-f64::INFINITY,f64::INFINITY,ply);}
             };
         }
 
@@ -88,12 +88,15 @@ impl Search {
     pub fn negamax_decision(board:&mut Chessboard,atk:&AttackMasks,depth:u32) -> Option<Move>{
         // This will stores the moves already made when we are searching
         let mut bestmove: Option<Move> = None;
-        let mut bestscore = -f64::INFINITY;
+        let mut bestscore = -f64::INFINITY + 100.0;
             
 
         let mut generator = MoveGenerator::new(board, &atk);
         generator.generate_moves();
 
+        if generator.stale_mate() || generator.check_mate() {
+            return None;
+        }
 
         for i in 0..generator.moves.count {
             
@@ -104,6 +107,10 @@ impl Search {
                 }
             };
 
+            if bestmove.is_none() {
+                bestmove = Some(generator.moves.list[i]);
+            }
+
             let score = -Self::negamax(
                 &mut generator.board, atk, -f64::INFINITY,f64::INFINITY,1, depth-1
             );
@@ -113,9 +120,8 @@ impl Search {
                 bestscore = score;
             }
 
-            match generator.unmake_move(generator.moves.list[i],packet) {
-                Ok(()) => (),
-                Err(_) => panic!("[SEARCH]: unable to unmake move during search."),
+            if generator.unmake_move(generator.moves.list[i],packet).is_err() {
+                panic!("[SEARCH]: unable to unmake move during search.");
             }
         }
         return bestmove;

@@ -5,6 +5,7 @@ use crate::Chessboard;
 use crate::attacks::AttackMasks;
 use crate::movegen::movecode::Move;
 use crate::chessboard::defs::{SIDES};
+use crate::search;
 use core::f64;
 use crate::move_type; 
 use crate::Search;
@@ -15,7 +16,7 @@ impl Search {
         board:&mut Chessboard,atk:&AttackMasks,depth:u32,mut alpha:f64,mut beta:f64,color:SIDES,ply:i32)
         -> f64 {
         if depth == 0 {
-            return evaluate(*board); 
+            return Search::quite_search(board,atk,-f64::INFINITY,f64::INFINITY,ply);
         }
         // Creating a generator object
         let mut generator = MoveGenerator::new(board,&atk);  
