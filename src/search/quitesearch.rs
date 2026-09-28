@@ -8,6 +8,7 @@ use crate::attacks::AttackMasks;
 use crate::evalu::{evaluate};
 use crate::move_type; 
 use crate::Search;
+use crate::SIDES;
 // We will consider this as the infinity value
 
 const DELTA_MARGIN: f64 = 400.0;
@@ -30,7 +31,14 @@ impl Search {
 
         let mut generator = MoveGenerator::new(board,&atk);  
         generator.generate_moves();
-        
+ 
+        if generator.check_mate() {
+            match generator.board.side_to_move {
+                SIDES::WHITE => {return -100_000.0}
+                SIDES::BLACK => {return 100_1000.0}
+            }
+        }
+
         if generator.stale_mate() {
             return 0.0;
         }

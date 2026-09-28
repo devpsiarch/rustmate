@@ -9,11 +9,12 @@ mod fen;
 pub mod attacks;
 pub mod magic;
 pub mod atkgen;
-
+pub mod zobrist;
+pub mod tt;
 
 #[derive(Clone,Copy)]
 pub struct Chessboard {
-    pub bitboards : [Bitboard;12],          //for each piece and diff color
+    pub bitboards : [Bitboard;12],          // for each piece and diff color
     pub side_to_move : SIDES,               // its an enum carfull
     pub occupencies : [Bitboard;3],         // one for black , black and both
     pub castling_rights : u8,               // binary rep each bit encodes for a right

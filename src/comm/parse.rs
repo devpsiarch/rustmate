@@ -31,7 +31,7 @@ pub fn show_engine_info() {
 }
 //here is the function that parses the move gotten from the UCI and also be made
 // This also ignores invalid moves
-pub fn parse_move(generator:&mut MoveGenerator,move_str:&str) -> Move{
+pub fn parse_move(generator:&mut MoveGenerator,move_str:&str) -> Move {
     // Moves from the UCI look like this : e2e4 , e7e8q
     if move_str.len() == 4 || move_str.len() == 5 {
         // defining these in case we have a promotion
@@ -143,7 +143,6 @@ pub fn position_handler(board:&mut Chessboard,atk:&AttackMasks,parts:&Vec<&str>)
         let mv = parse_move(&mut generator,mov);
         // Getting the move failed for some reason , we dont care
         if mv != 0 {
-
             let _killed = match generator.make_move(mv,move_type::ALL_MOVES) {
                 Ok(maybe_killed_piece) => maybe_killed_piece,
                 Err(MakeMoveError::CaptureConflict) | Err(MakeMoveError::Illegal) => {
@@ -153,6 +152,8 @@ pub fn position_handler(board:&mut Chessboard,atk:&AttackMasks,parts:&Vec<&str>)
             };
 
         }
+        generator.board.print_chessboard();
+        println!("added: {}",get_uci_move(mv));
     }
     //board.print_chessboard();
 }

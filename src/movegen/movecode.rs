@@ -18,7 +18,7 @@
     0100 0000 0000 0000 0000 0000    enpassant flag      0x400000
     1000 0000 0000 0000 0000 0000    castling flag       0x800000
 */
-use crate::chessboard::defs::{SQUARE_NAME,UNICODE_PIECES};
+use crate::chessboard::defs::{Pieces, SQUARE_NAME, UNICODE_PIECES};
 pub type Move = u32;             // sure 4 bits unused is better then nothing
 
 pub struct MoveMask;
@@ -116,7 +116,13 @@ pub fn show_move(mv:Move) {
     println!("move src {}",SQUARE_NAME[src as usize]);
     println!("move dst {}",SQUARE_NAME[dst as usize]);
     println!("move piece {}",UNICODE_PIECES[p as usize]);
-    println!("move promo piece {}",UNICODE_PIECES[promo as usize]);
+    println!("move promo piece {}",
+        if promo != Pieces::NONE {
+            UNICODE_PIECES[promo as usize]
+        }else{
+            "None"
+        }
+    );
     if cap != 0 {
         println!("move capture");
     } else {

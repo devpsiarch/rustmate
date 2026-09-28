@@ -2,7 +2,7 @@
 * We seach for moves in this module , well do all sort of ways to do so ...
 * 1- random move generator <baby step>
 * */
-use crate::movegen::MoveGenerator;
+use crate::{chessboard::tt, movegen::MoveGenerator};
 use crate::Chessboard;
 use crate::attacks::AttackMasks;
 use crate::movegen::movecode::Move;
@@ -23,8 +23,8 @@ impl Search {
 
     // TODO: should add the is_game_over function to stop the search
     pub fn search_move(board:&mut Chessboard,atk:&AttackMasks,depth:u32) -> Option<Move>{
-        return Self::negamax_decision(board, atk, depth);
-        // return Self::minimax_decision(board, atk, depth);
+        // return Self::negamax_decision(board, atk, depth);
+        return Self::minimax_decision(board, atk, depth);
     }
 
     // This is the move searchers that will be here

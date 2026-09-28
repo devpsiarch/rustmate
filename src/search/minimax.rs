@@ -5,18 +5,29 @@ use crate::Chessboard;
 use crate::attacks::AttackMasks;
 use crate::movegen::movecode::Move;
 use crate::chessboard::defs::{SIDES};
-use crate::search;
 use core::f64;
 use crate::move_type; 
 use crate::Search;
+use crate::TT;
+use crate::chessboard::tt;
 
 impl Search {
     // minimax algorithm with alpha beta pruning
-    fn minimax_alpha_beta(
-        board:&mut Chessboard,atk:&AttackMasks,depth:u32,mut alpha:f64,mut beta:f64,color:SIDES,ply:i32)
-        -> f64 {
+    fn minimax_alpha_beta(board:&mut Chessboard,atk:&AttackMasks,depth:u32,mut alpha:f64,mut beta:f64,color:SIDES,ply:i32) -> f64 {
+        
+        unsafe {
+            if let Some(eval) =  TT.get().probeHash(depth, alpha, beta, board) {
+                return eval;
+            }
+        }
+
         if depth == 0 {
-            return Search::quite_search(board,atk,-f64::INFINITY,f64::INFINITY,ply);
+            // let eval = evaluate(*board);
+            let eval = Search::quite_search(board,atk,-f64::INFINITY,f64::INFINITY,ply);
+            unsafe {
+                TT.get().recordHash(depth, eval, tt::TTflag::HashExact, board);
+            }
+            return eval;
         }
         // Creating a generator object
         let mut generator = MoveGenerator::new(board,&atk);  
@@ -25,7 +36,7 @@ impl Search {
         if generator.check_mate() {
             match generator.board.side_to_move {
                 SIDES::WHITE => {return -100_000.0}
-                SIDES::BLACK => {return 100_1000.0}
+                SIDES::BLACK => {return 100_000.0}
             }
         }
 
@@ -120,6 +131,10 @@ impl Search {
                     continue;
                 }
             };
+
+            if bestmove.is_none() {
+                bestmove = Some(generator.moves.list[i]);
+            }
 
             let score = Self::minimax_alpha_beta(
                 generator.board, atk, depth-1, -f64::INFINITY, f64::INFINITY, generator.board.side_to_move, 1

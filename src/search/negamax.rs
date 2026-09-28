@@ -2,6 +2,7 @@ use core::f64;
 use core::panic;
 
 use crate::SIDES;
+use crate::chessboard::tt;
 use crate::movegen::MakeMoveError;
 use crate::movegen::MoveGenerator;
 use crate::Chessboard;
@@ -14,32 +15,36 @@ use crate::search::quitesearch;
 // petition to add nodes traversed and legal moves went thought in the seach process , for pretty
 // stuff
 
+use crate::TT;
+
 #[allow(dead_code)] 
 impl Search {
     // Searches for moves in a different way then for each color , just for expiremntation ik ik i
     // cant spell
-    fn negamax(
-        board:&mut Chessboard,atk:&AttackMasks,mut alpha:f64,beta:f64,
-    ply:i32,depth:u32) -> f64 {
+    fn negamax(board:&mut Chessboard,atk:&AttackMasks,mut alpha:f64,beta:f64,ply:i32,depth:u32) -> f64 {
+        
+        unsafe {
+            if let Some(eval) =  TT.get().probeHash(depth, alpha, beta, board) {
+                return eval;
+            }
+        }
 
         // since we have define the evaluate as max for white and min for black
         // then we have to flip the signs 
         if depth == 0 {
-            let eval = evaluate(*board);
-            match board.side_to_move {
-                SIDES::WHITE => {return Search::quite_search(board,atk,-f64::INFINITY,f64::INFINITY,ply);}
-                SIDES::BLACK => {return -Search::quite_search(board,atk,-f64::INFINITY,f64::INFINITY,ply);}
-            };
+            // let eval = evaluate(*board);
+            let eval = Search::quite_search(board,atk,-f64::INFINITY,f64::INFINITY,ply);
+            unsafe {
+                TT.get().recordHash(depth, eval, tt::TTflag::HashExact, board);
+            }
+            return eval;
         }
 
         let mut generator = MoveGenerator::new(board, &atk);
         generator.generate_moves();
 
         if generator.check_mate() {
-            match generator.board.side_to_move {
-                SIDES::WHITE => {return -100_000.0}
-                SIDES::BLACK => {return 100_1000.0}
-            }
+            return 100_000.0;
         }
 
         if generator.stale_mate() {
@@ -82,7 +87,7 @@ impl Search {
                 break;
             }
         }
-
+        
         return best_score;
     }
     pub fn negamax_decision(board:&mut Chessboard,atk:&AttackMasks,depth:u32) -> Option<Move>{

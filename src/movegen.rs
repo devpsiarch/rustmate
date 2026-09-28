@@ -2,7 +2,7 @@ pub mod init;
 pub mod movecode;
 pub mod movelist;
 pub mod perft;
-use crate::{Chessboard,MoveMask};
+use crate::{Chessboard, MoveMask, chessboard};
 use crate::attacks::AttackMasks;
 use crate::{MoveList};
 use crate::defs::ChessPiece;
@@ -94,7 +94,7 @@ impl<'a> MoveGenerator<'a> {
     }
     // We wont change Self here no matter what , this only and only gets us the moves
     pub fn generate_moves(&mut self) {
-        // Untile now i rememeber that i might wanna reset the array of moves ... what a dummy
+        // Until now i rememeber that i might wanna reset the array of moves ... what a dummy
         self.moves = MoveList::new(); 
         if self.board.half_move_clock < 150 {
             self.generate_pawn_moves();

@@ -3,14 +3,18 @@ use std::env;
 
 
 mod chessboard;
-use chessboard::{Chessboard};
+use chessboard::{Chessboard,tt::TranspositionTable};
 use crate::chessboard::bitboard;
 use crate::chessboard::attacks;
 use crate::chessboard::defs;
+use crate::chessboard::defs::Pieces;
 use crate::chessboard::magic;
+use crate::chessboard::tt;
+use crate::comm::parse::get_uci_move;
 use crate::defs::{FenPositions,SIDES};
 
 mod movegen;
+use crate::movegen::movecode::show_move;
 use crate::movegen::perft::perft_driver_undo;
 use crate::movegen::{MoveGenerator,MakeMoveError};
 use crate::movegen::movecode::{Move,MoveMask};
@@ -42,38 +46,68 @@ enum EngineMode {
     Versus
 }
 
-//i will be running tests here untile everything is set and done
+use std::cell::UnsafeCell;
+
+pub struct GlobalTT(UnsafeCell<Option<tt::TranspositionTable>>);
+
+unsafe impl Sync for GlobalTT {}
+
+pub static TT: GlobalTT = GlobalTT(UnsafeCell::new(None));
+
+impl GlobalTT {
+    pub fn init(&self) {
+        unsafe {
+            *self.0.get() = Some(tt::TranspositionTable::new());
+        }
+    }
+
+    #[inline(always)]
+    pub unsafe fn get(&self) -> &'static mut tt::TranspositionTable {
+        (*self.0.get())
+            .as_mut()
+            .expect("TranspositionTable is not initialized! Call TT.init() first.")
+    }
+}
+
+
+// i will be running tests here untile everything is set and done
 #[allow(unreachable_code)]
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");    // for debugging
     // init the ATTACK tables , sooner we will replace this with an instance that will do everything
     let mut attacks = attacks::AttackMasks::new();
     attacks.load_attacks_maps();
-    let mut chess = Chessboard::new();   
-
+    let mut chess = Chessboard::new();
+    TT.init();
     let mode = EngineMode::Versus;
+
+    let mut chess2 = Chessboard::new();
+
+
 
     match mode {
         EngineMode::Versus => {
             let mut game_moves: Vec<Move> = Vec::<Move>::new();
             // by default , a versus game starts at the start position for a regular chess game
             chess.init_board(FenPositions::STARTING_POSITION);
-            let mut generator = MoveGenerator::new(&mut chess,&attacks);
             
-            while let Some(mv) = Search::search_move(&mut generator.board, &attacks, 6) {
-                game_moves.push(mv);
+            while let Some(mv) = Search::search_move(&mut chess.clone(), &attacks, 4) {
+                let mut generator = MoveGenerator::new(&mut chess,&attacks);
                 if let Ok(_) = generator.make_move(mv,move_type::ALL_MOVES) {
                     // generator.generate_moves();
                     generator.board.print_chessboard();
+                    game_moves.push(mv);
+                    show_move(mv);
+                    println!("added: {} ",get_uci_move(mv));
                     // generator.print_all_moves();               
                 }else{
                     panic!("failed to make move ...");
                 }
             }
             println!("game over!");
-            generator.board.print_chessboard();
+            chess.print_chessboard();
             for mv in game_moves {
-                print!("{}{} ",chessboard::defs::SQUARE_NAME[get_move_src!(mv) as usize],chessboard::defs::SQUARE_NAME[get_move_dst!(mv) as usize]);
+                print!("{} ",get_uci_move(mv));
             }
         }
         EngineMode::UCI => {
@@ -84,14 +118,24 @@ fn main() {
         }
         EngineMode::Custom => {
             chess.init_board(FenPositions::TRICKY_POSITION);
+            chess2.init_board(FenPositions::STARTING_POSITION);
             
+            let tt = chessboard::zobrist::Zobrist::new();
+
+            println!("zobrist hash for board: {}",tt.hash(&chess));   
+            println!("zobrist hash for board2: {}",tt.hash(&chess2));   
+            return ;
+
             let mut generator = MoveGenerator::new(&mut chess,&attacks);
             generator.generate_moves();
             
             generator.print_all_moves();
 
+
+
             println!("BEFORE THE MOVE");
             generator.board.print_chessboard();
+
 
             let i = 9;
 
