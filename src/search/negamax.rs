@@ -21,11 +21,20 @@ use crate::TT;
 impl Search {
     // Searches for moves in a different way then for each color , just for expiremntation ik ik i
     // cant spell
-    fn negamax(board:&mut Chessboard,atk:&AttackMasks,mut alpha:f64,beta:f64,ply:i32,depth:u32) -> f64 {
+    fn negamax(board:&mut Chessboard,atk:&AttackMasks,mut alpha:f64,mut beta:f64,ply:i32,depth:u32) -> f64 {
         
         unsafe {
-            if let Some(eval) =  TT.get().probeHash(depth, alpha, beta, board) {
-                return eval;
+            if let Some(entry) = TT.get().probeHash(depth, alpha, beta, board) {
+                if entry.depth >= depth {
+                    match entry.flag {
+                        tt::TTflag::HashExact => return entry.eval,
+                        tt::TTflag::HashBeta => alpha = alpha.max(entry.eval),
+                        tt::TTflag::HashAlpha => beta = beta.max(entry.eval),
+                    }
+                    if alpha >= beta {
+                        return entry.eval;
+                    }
+                }
             }
         }
 

@@ -1,3 +1,4 @@
+use crate::chessboard::tt::TranspositionTable;
 use crate::evalu::evaluate;
 use crate::movegen::MakeMoveError;
 use crate::movegen::MoveGenerator;
@@ -6,6 +7,7 @@ use crate::attacks::AttackMasks;
 use crate::movegen::movecode::Move;
 use crate::chessboard::defs::{SIDES};
 use core::f64;
+use core::panic;
 use crate::move_type; 
 use crate::Search;
 use crate::TT;
@@ -16,8 +18,15 @@ impl Search {
     fn minimax_alpha_beta(board:&mut Chessboard,atk:&AttackMasks,depth:u32,mut alpha:f64,mut beta:f64,color:SIDES,ply:i32) -> f64 {
         
         unsafe {
-            if let Some(eval) =  TT.get().probeHash(depth, alpha, beta, board) {
-                return eval;
+            if let Some(entry) = TT.get().probeHash(depth, alpha, beta, board) {
+                if entry.depth >= depth {
+                    match entry.flag {
+                        tt::TTflag::HashExact => return entry.eval,
+                        tt::TTflag::HashBeta if entry.eval >= beta => return entry.eval,
+                        tt::TTflag::HashAlpha if entry.eval <= alpha => return entry.eval,
+                        _ => {}
+                    }
+                }
             }
         }
 
@@ -45,6 +54,11 @@ impl Search {
         }
 
         generator.move_order();
+
+        // record original alpha for record the cache 
+        let original_alpha = alpha;
+        let mut node_eval: Option<f64> = None;
+
 
         match color {
             // White wants to maximize the evaluation 
@@ -76,7 +90,7 @@ impl Search {
                         break;
                     }
                 }
-                maxeval
+                node_eval = Some(maxeval);
             }
             // Black wants to minimize the evaluation
             SIDES::BLACK => {
@@ -105,9 +119,20 @@ impl Search {
                             break;
                         }
                 }
-                minval
+                node_eval = Some(minval);
             }
         }
+
+        if let Some(v) = node_eval {
+            // saving the calculated eval to cache
+            unsafe {
+                TT.get().recordHash(depth, v, tt::TTflag::HashExact, board);
+            }
+            v
+        }else {
+            panic!("Search Minimax failed to assign node_eval!");
+        }
+
     }
     pub fn minimax_decision(board:&mut Chessboard,atk:&AttackMasks,depth:u32) -> Option<Move>{
         // This will stores the moves already made when we are searching

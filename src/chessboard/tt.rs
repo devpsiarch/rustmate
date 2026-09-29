@@ -4,7 +4,7 @@ pub enum TTflag {
     HashExact,HashAlpha,HashBeta
 }
 
-struct TranspositionEntry {
+pub struct TranspositionEntry {
     pub key: u64,
     pub depth: u32,
     pub flag: TTflag,
@@ -26,22 +26,14 @@ impl TranspositionTable {
             entries: [const { None }; TRANSPOSITION_TABLE_SIZE as usize],
         }
     }
-    pub fn probeHash(&self,depth: u32,alpha: f64,beta: f64,board: &Chessboard) -> Option<f64> {
+    pub fn probeHash(&self,depth: u32,alpha: f64,beta: f64,board: &Chessboard) -> Option<&TranspositionEntry> {
         let key = self.hasher.hash(board);
         if let Some(cache_hit) = &self.entries[(key % TRANSPOSITION_TABLE_SIZE) as usize] {
-            if cache_hit.key == key && cache_hit.depth >= depth {
-                return match cache_hit.flag {
-                    TTflag::HashBeta => Some(cache_hit.eval),
-                    TTflag::HashAlpha if cache_hit.eval <= alpha => Some(alpha),
-                    TTflag::HashExact if cache_hit.eval >= beta=> Some(beta),
-                    _ => None
-                }
-            }else{
-                None
+            if key == cache_hit.key {
+                return Some(cache_hit);
             }
-        }else{
-            None
         }
+        None
     }
     pub fn recordHash(&mut self,_depth: u32,_eval: f64,_flag: TTflag,_board: &Chessboard) -> () {
         let _key = self.hasher.hash(_board);
