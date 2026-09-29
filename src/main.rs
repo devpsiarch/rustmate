@@ -91,7 +91,7 @@ fn main() {
             // by default , a versus game starts at the start position for a regular chess game
             chess.init_board(FenPositions::STARTING_POSITION);
             
-            while let Some(mv) = Search::search_move(&mut chess.clone(), &attacks, 4) {
+            while let Some(mv) = Search::search_move(&mut chess.clone(), &attacks, 5) {
                 let mut generator = MoveGenerator::new(&mut chess,&attacks);
                 if let Ok(_) = generator.make_move(mv,move_type::ALL_MOVES) {
                     // generator.generate_moves();

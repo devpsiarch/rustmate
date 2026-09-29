@@ -439,26 +439,20 @@ impl<'a> MoveGenerator<'a> {
     }
 
     pub fn mvv_lva(&self,_some_move:Move) -> f64 {
-        if get_move_capture!(_some_move) != 0{
+        if get_move_capture!(_some_move) != 0 {
             let mut victim_value = 0.0;
-            let mut agressor_value = 0.0;
+            let agressor_value = get_move_piece!(_some_move) as f64;
             let dst = get_move_dst!(_some_move);
-            let src = get_move_src!(_some_move);
 
             for i in Pieces::P..=Pieces::k {
                 // match the bitboards with there dst 
                 // if they match get the evalution from the table of pices costs
                 if self.board.bitboards[i] & (1 << dst) != 0 {
-                    victim_value = PIECES_COST[i];
-                }
-                if self.board.bitboards[i] & ( 1 << src) != 0{
-                    agressor_value = PIECES_COST[i];
-                }
-                if agressor_value != 0.0 && victim_value != 0.0{
+                    victim_value = PIECES_COST[i].abs();
                     break;
                 }
             }
-            return (victim_value * 10.0 - agressor_value).abs();
+            return victim_value * 10.0 - agressor_value;
         }else{
             return 0.0;
         }

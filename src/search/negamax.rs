@@ -10,7 +10,7 @@ use crate::attacks::AttackMasks;
 use crate::movegen::movecode::Move;
 use crate::move_type; 
 use crate::Search;
-use crate::evalu::{evaluate};
+use crate::evalu::{evaluate,evaluate_absolute};
 use crate::search::quitesearch;
 // petition to add nodes traversed and legal moves went thought in the seach process , for pretty
 // stuff
@@ -41,7 +41,7 @@ impl Search {
         // since we have define the evaluate as max for white and min for black
         // then we have to flip the signs 
         if depth == 0 {
-            // let eval = evaluate(*board);
+            // let eval = evaluate_absolute(*board);
             let eval = Search::quite_search(board,atk,-f64::INFINITY,f64::INFINITY,ply);
             unsafe {
                 TT.get().recordHash(depth, eval, tt::TTflag::HashExact, board);

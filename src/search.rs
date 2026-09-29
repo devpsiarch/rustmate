@@ -23,8 +23,8 @@ impl Search {
 
     // TODO: should add the is_game_over function to stop the search
     pub fn search_move(board:&mut Chessboard,atk:&AttackMasks,depth:u32) -> Option<Move>{
-        // return Self::negamax_decision(board, atk, depth);
-        return Self::minimax_decision(board, atk, depth);
+        return Self::negamax_decision(board, atk, depth);
+        // return Self::minimax_decision(board, atk, depth);
     }
 
     // This is the move searchers that will be here

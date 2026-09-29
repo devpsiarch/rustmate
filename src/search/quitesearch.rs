@@ -5,7 +5,7 @@ use crate::movegen::{MoveGenerator,MakeMoveError};
 use crate::search::quitesearch;
 use crate::{Chessboard, get_move_capture, get_move_enpassant};
 use crate::attacks::AttackMasks;
-use crate::evalu::{evaluate};
+use crate::evalu::{evaluate, evaluate_absolute};
 use crate::move_type; 
 use crate::Search;
 use crate::SIDES;
@@ -18,7 +18,7 @@ impl Search {
     // minimax algorithm
     // This already takes the best move found so far , it may change or not if found some better
     pub fn quite_search(board:&mut Chessboard,atk:&AttackMasks,mut alpha:f64,beta:f64,ply:i32) -> f64 {
-        let static_eval = evaluate(*board);
+        let static_eval = evaluate_absolute(*board);
 
         let mut best_value = static_eval;
         if best_value >= beta {
@@ -28,21 +28,9 @@ impl Search {
             alpha = best_value;
         }
 
-
         let mut generator = MoveGenerator::new(board,&atk);  
         generator.generate_moves();
  
-        if generator.check_mate() {
-            match generator.board.side_to_move {
-                SIDES::WHITE => {return -100_000.0}
-                SIDES::BLACK => {return 100_1000.0}
-            }
-        }
-
-        if generator.stale_mate() {
-            return 0.0;
-        }
-
         generator.move_order();
 
         for i in 0..generator.moves.count {
@@ -51,9 +39,9 @@ impl Search {
                 
                 if let Some(p) = packet.captured_piece {
                     if PIECES_COST[p] + static_eval + DELTA_MARGIN < alpha {
-                    if let Err(_) = generator.unmake_move(generator.moves.list[i], packet) {
-                        panic!("[SEARCH]: failed to unmake move in quite_search!");
-                    }
+                        if let Err(_) = generator.unmake_move(generator.moves.list[i], packet) {
+                            panic!("[SEARCH]: failed to unmake move in quite_search!");
+                        }
                         continue;
                     }
                 }
